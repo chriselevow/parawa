@@ -167,7 +167,10 @@ export default function LandingPage() {
         <div className="mt-6 flex flex-wrap gap-2">
           {categories.filter((c) => c !== "Todos").map((cat) => (
             <Link key={cat} href="/discover">
-              <Badge variant="outline" className="px-4 py-2 text-sm hover:bg-muted">
+              <Badge
+                variant="outline"
+                className="border-primary/20 bg-primary/5 px-4 py-2 text-sm text-primary hover:bg-primary/10"
+              >
                 {cat}
               </Badge>
             </Link>
@@ -213,7 +216,10 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/login"
-              className={cn(buttonVariants({ variant: "outline", size: "lg" }), "border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10")}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "lg" }),
+                "border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
+              )}
             >
               Crear cuenta
             </Link>

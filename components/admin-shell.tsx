@@ -8,6 +8,7 @@ import {
   WrenchIcon,
 } from "lucide-react"
 
+import { BrandMark } from "@/components/brand-mark"
 import { buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { adminStats } from "@/lib/admin-mock-data"
@@ -41,9 +42,7 @@ export function AdminShell({
     <div className="flex min-h-svh bg-background">
       <aside className="hidden w-56 shrink-0 flex-col border-r bg-muted/20 md:flex">
         <div className="flex flex-col gap-1 border-b p-4">
-          <Link href="/" className="font-heading text-sm font-semibold">
-            Parawa
-          </Link>
+          <BrandMark href="/" size="sm" />
           <p className="text-xs text-muted-foreground">Panel administración</p>
         </div>
         <nav className="flex flex-1 flex-col gap-1 p-3">

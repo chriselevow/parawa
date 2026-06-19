@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { BrandMark } from "@/components/brand-mark"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -15,9 +16,7 @@ export function LandingShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-svh flex-col bg-background">
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4">
-          <Link href="/" className="font-heading text-xl font-semibold tracking-tight">
-            Parawa
-          </Link>
+          <BrandMark href="/" />
           <nav className="hidden items-center gap-1 md:flex">
             {nav.map((item) => (
               <Link
@@ -46,7 +45,7 @@ export function LandingShell({ children }: { children: React.ReactNode }) {
       <footer className="border-t bg-muted/20">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-10 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="font-heading font-semibold">Parawa</p>
+            <BrandMark size="sm" />
             <p className="text-sm text-muted-foreground">
               Mercado digital de servicios locales · Panamá
             </p>

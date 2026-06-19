@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { BrandMark } from "@/components/brand-mark"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -24,9 +25,7 @@ export function PrototypeShell({
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center justify-between gap-3">
-            <Link href="/" className="font-heading text-lg font-semibold tracking-tight">
-              Parawa
-            </Link>
+            <BrandMark href="/" size="sm" />
             <Link
               href="/login"
               className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
