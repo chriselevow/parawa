@@ -38,6 +38,25 @@ type FirebaseSlot = Record<string, unknown>
 type FirebaseEnterprise = Record<string, unknown>
 type FirebasePunctualityEvaluation = Record<string, unknown>
 
+export type ServiceSummary = {
+  id: string
+  providerId: string
+  providerName: string
+  title: string
+  description: string
+  category: string
+  subCategory: string
+  price: number
+  duration: string
+  imageUrl?: string
+  pricingMode: string
+  servicesLimit: number
+  isPackage: boolean
+  productsCount: number
+  productsPreview: string
+  ratePerDistanceUnit: boolean
+}
+
 export type EnterpriseSummary = {
   id: string
   name: string
@@ -100,6 +119,7 @@ export type ParawaData = {
   adminBookings: AdminBookingRow[]
   recentAdminBookings: AdminBookingRow[]
   providerSlotSummaries: ProviderSlotSummary[]
+  serviceSummaries: ServiceSummary[]
   enterpriseSummaries: EnterpriseSummary[]
   punctualityEvaluations: PunctualityEvaluationSummary[]
   providerQualitySummaries: ProviderQualitySummary[]
@@ -287,6 +307,31 @@ function summarizeServices(services: string[]) {
   return { service, serviceCount, serviceNames }
 }
 
+function subCategoryLabel(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return categoryLabel(value)
+  }
+
+  const record = value as Record<string, unknown>
+  return categoryLabel(record.value)
+}
+
+function productsPreview(value: unknown) {
+  if (!Array.isArray(value) || !value.length) return ""
+
+  return value
+    .map((product) => {
+      if (!product || typeof product !== "object") return ""
+      const record = product as Record<string, unknown>
+      const name = text(record.name, text(record.title))
+      const quantity = number(record.quantity, 0)
+      if (!name) return ""
+      return quantity > 1 ? `${name} x${quantity}` : name
+    })
+    .filter(Boolean)
+    .join(", ")
+}
+
 function slotItems(value: unknown) {
   if (!Array.isArray(value)) return []
 
@@ -362,6 +407,56 @@ function normalizeSlotSummaries(slots: FirebaseDocument<FirebaseSlot>[]) {
       nextTimes,
     } satisfies ProviderSlotSummary
   })
+}
+
+function normalizeServiceSummaries(
+  services: FirebaseDocument<FirebaseService>[],
+  userById: Map<string, FirebaseDocument<FirebaseUser>>
+) {
+  return services
+    .map((service) => {
+      const providerId = docId(service.data.provider)
+      const products = Array.isArray(service.data.products)
+        ? service.data.products
+        : []
+      const title =
+        text(service.data.title) ||
+        text(service.data.name) ||
+        `Servicio ${service.id.slice(0, 6)}`
+
+      return {
+        id: service.id,
+        providerId,
+        providerName: providerId
+          ? fullName(userById.get(providerId))
+          : "Proveedor no vinculado",
+        title,
+        description:
+          profileCopy(service.data.description) || "Sin descripción publicada.",
+        category: categoryLabel(service.data.category),
+        subCategory: subCategoryLabel(service.data.subCategory),
+        price: number(service.data.price, 0),
+        duration: text(service.data.duration, "Sin duración"),
+        imageUrl:
+          storageUrl(service.data.image) ||
+          storageUrl(
+            Array.isArray(service.data.images)
+              ? service.data.images[0]
+              : undefined
+          ),
+        pricingMode: text(service.data.pricingMode, "standard"),
+        servicesLimit: number(service.data.servicesLimit, 0),
+        isPackage: bool(service.data.isPackage),
+        productsCount: products.length,
+        productsPreview: productsPreview(products),
+        ratePerDistanceUnit: bool(service.data.ratePerDistanceUnit),
+      } satisfies ServiceSummary
+    })
+    .sort(
+      (a, b) =>
+        a.providerName.localeCompare(b.providerName, "es") ||
+        a.title.localeCompare(b.title, "es")
+    )
 }
 
 function normalizeEnterpriseSummaries(
@@ -776,6 +871,7 @@ function normalizeFirebaseData(
   )
   const messageThreads = messageThreadsForBookings(normalizedBookings)
   const providerSlotSummaries = normalizeSlotSummaries(slots)
+  const serviceSummaries = normalizeServiceSummaries(services, userById)
   const enterpriseSummaries = normalizeEnterpriseSummaries(
     enterprises,
     userById
@@ -813,6 +909,7 @@ function normalizeFirebaseData(
     adminBookings,
     recentAdminBookings,
     providerSlotSummaries,
+    serviceSummaries,
     enterpriseSummaries,
     punctualityEvaluations,
     providerQualitySummaries,
@@ -832,6 +929,7 @@ function mockData(): ParawaData {
     adminBookings: mockRecentAdminBookings,
     recentAdminBookings: mockRecentAdminBookings,
     providerSlotSummaries: [],
+    serviceSummaries: [],
     enterpriseSummaries: [],
     punctualityEvaluations: [],
     providerQualitySummaries: [],
@@ -989,6 +1087,7 @@ export async function getAdminData() {
     pendingVerifications: data.pendingVerifications,
     adminBookings: data.adminBookings,
     recentAdminBookings: data.recentAdminBookings,
+    serviceSummaries: data.serviceSummaries,
     enterpriseSummaries: data.enterpriseSummaries,
     punctualityEvaluations: data.punctualityEvaluations,
     providerQualitySummaries: data.providerQualitySummaries,
@@ -1008,6 +1107,14 @@ export async function getProviderQualitySummary(providerId?: string) {
   const data = await getParawaData()
   return data.providerQualitySummaries.find(
     (summary) => summary.providerId === providerId
+  )
+}
+
+export async function getServicesForProvider(providerId?: string) {
+  if (!providerId) return []
+  const data = await getParawaData()
+  return data.serviceSummaries.filter(
+    (service) => service.providerId === providerId
   )
 }
 

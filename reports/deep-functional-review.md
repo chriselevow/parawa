@@ -89,6 +89,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 26. Firebase `enterprise` and `punctuality_evalution` collections were not represented in the UI.
     - Fix: Added read-only normalization for enterprise records and punctuality evaluations, added admin routes for `/admin/enterprises` and `/admin/quality` with search/filter/pagination/mobile cards, added admin navigation links, and surfaced selected-provider punctuality summaries in the provider dashboard.
 
+27. Firebase service records were reduced to service names in public and admin UI.
+    - Fix: Added full service normalization for price, duration, pricing mode, image, category, subcategory, package/product metadata, provider linkage, and descriptions; added `/admin/services` with search/filter/pagination/mobile cards; and upgraded `/providers/[id]` service cards to use the detailed Firebase service records.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -114,10 +117,11 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 
 6. Storage assets are only partially rendered.
    - Current Firebase Storage has provider/service assets.
-   - Needed: validate service/user image paths, render available profile images, and decide whether private assets need signed URLs.
+   - Current behavior: provider profile images and normalized service images render where public URLs are available; `/admin/services` and `/providers/[id]` now include service image slots with safe fallbacks.
+   - Needed: validate remaining user/service image paths at larger scale and decide whether private assets need signed URLs.
 
 7. Firebase data adapters are read-only.
-   - Current behavior: UI can normalize Firestore `users`, `services`, `bookings`, `reviews`, `provider-slots`, `enterprise`, and `punctuality_evalution` when a service account env is configured, then falls back to local mock data. Provider-slot data is represented in the provider dashboard, enterprise records have a dedicated admin list, and punctuality evaluations have global and provider-level quality surfaces.
+   - Current behavior: UI can normalize Firestore `users`, `services`, `bookings`, `reviews`, `provider-slots`, `enterprise`, and `punctuality_evalution` when a service account env is configured, then falls back to local mock data. Service records, provider-slot data, enterprise records, and punctuality evaluations now have dedicated or contextual UI surfaces.
    - Needed: validate the normalized fields against more real records and add write paths per workflow.
 
 8. Admin list controls are still client-side over normalized reads.
@@ -228,6 +232,17 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
   `/provider` at `390x844` and `1280x900`: required route copy rendered,
   `pageOverflow` was `0`, and desktop had no overflowing elements. Mobile admin
   checks only reported items inside the intentional horizontal admin nav rail.
+- Service collection coverage now includes read-only Firebase normalization for
+  price, duration, pricing mode, images, category/subcategory, package/product
+  metadata, and provider linkage. Firebase-env production build passed with 17
+  generated routes, including `/admin/services`.
+- Browser checks passed on `/admin/services`,
+  `/admin/services?filter=package&page=1`,
+  `/admin/services?q=zzzz-no-service&page=99`, and live provider route
+  `/providers/R9x9I1tnNIa7iZpjlm5Oemid9qi1` at `390x844` and `1280x900`:
+  service catalog copy, filters, filtered empty state, detailed Firebase
+  provider service cards, package/product badges, and booking CTA rendered with
+  `pageOverflow` at `0` and no overflowing elements.
 
 ## Recommended Next Step
 

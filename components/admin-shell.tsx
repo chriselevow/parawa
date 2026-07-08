@@ -4,6 +4,7 @@ import {
   CalendarIcon,
   GaugeIcon,
   LayoutDashboardIcon,
+  ListChecksIcon,
   type LucideIcon,
   ShieldCheckIcon,
   UsersIcon,
@@ -25,6 +26,7 @@ const baseNav: Array<{
 }> = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboardIcon },
   { href: "/admin/providers", label: "Proveedores", icon: WrenchIcon },
+  { href: "/admin/services", label: "Servicios", icon: ListChecksIcon },
   { href: "/admin/bookings", label: "Reservas", icon: CalendarIcon },
   { href: "/admin/users", label: "Usuarios", icon: UsersIcon },
   { href: "/admin/enterprises", label: "Empresas", icon: Building2Icon },

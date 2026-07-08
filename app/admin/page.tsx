@@ -119,6 +119,12 @@ export default async function AdminDashboardPage() {
               Proveedores
             </Link>
             <Link
+              href="/admin/services"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            >
+              Servicios
+            </Link>
+            <Link
               href="/admin/bookings"
               className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
             >

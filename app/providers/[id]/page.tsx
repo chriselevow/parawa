@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
+  ImageIcon,
   MapPinIcon,
   MessageCircleIcon,
   SearchIcon,
@@ -32,14 +33,45 @@ import {
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { getProvider } from "@/lib/parawa-data"
+import {
+  getProvider,
+  getServicesForProvider,
+  type ServiceSummary,
+} from "@/lib/parawa-data"
 import { cn } from "@/lib/utils"
 
 const PROVIDER_SERVICES_PAGE_LIMIT = 8
 
-function serviceMatchesQuery(service: string, query: string) {
+type ProviderServiceDisplay = {
+  id: string
+  title: string
+  description: string
+  category: string
+  subCategory: string
+  price: number
+  duration: string
+  imageUrl?: string
+  isPackage: boolean
+  productsCount: number
+  productsPreview: string
+}
+
+function serviceMatchesQuery(service: ProviderServiceDisplay, query: string) {
   if (!query) return true
-  return service.toLowerCase().includes(query.toLowerCase())
+  const normalizedQuery = query.toLowerCase()
+
+  return [
+    service.id,
+    service.title,
+    service.description,
+    service.category,
+    service.subCategory,
+    service.duration,
+    service.productsPreview,
+  ]
+    .join(" ")
+    .toLowerCase()
+    .includes(normalizedQuery)
 }
 
 function providerServiceHref(
@@ -71,10 +103,37 @@ export default async function ProviderPage({
   const search = await searchParams
   const provider = await getProvider(id)
   if (!provider) notFound()
+  const firebaseServices = await getServicesForProvider(provider.id)
+  const services: ProviderServiceDisplay[] = firebaseServices.length
+    ? firebaseServices.map((service: ServiceSummary) => ({
+        id: service.id,
+        title: service.title,
+        description: service.description,
+        category: service.category,
+        subCategory: service.subCategory,
+        price: service.price,
+        duration: service.duration,
+        imageUrl: service.imageUrl,
+        isPackage: service.isPackage,
+        productsCount: service.productsCount,
+        productsPreview: service.productsPreview,
+      }))
+    : provider.services.map((service) => ({
+        id: service,
+        title: service,
+        description: provider.bio,
+        category: provider.category,
+        subCategory: provider.category,
+        price: provider.priceFrom,
+        duration: "Por confirmar",
+        isPackage: false,
+        productsCount: 0,
+        productsPreview: "",
+      }))
   const q = typeof search?.q === "string" ? search.q.trim() : ""
   const rawPage = Number(search?.page)
   const requestedPage = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : 1
-  const filteredServices = provider.services.filter((service) =>
+  const filteredServices = services.filter((service) =>
     serviceMatchesQuery(service, q)
   )
   const {
@@ -156,8 +215,8 @@ export default async function ProviderPage({
               <div className="min-w-0">
                 <h2 className="font-medium">Servicios</h2>
                 <p className="text-sm text-muted-foreground">
-                  {filteredServices.length} de {provider.services.length}{" "}
-                  servicios disponibles.
+                  {filteredServices.length} de {services.length} servicios
+                  disponibles.
                 </p>
               </div>
               <Badge variant="outline">
@@ -206,6 +265,9 @@ export default async function ProviderPage({
                   {filteredServices.length} resultado
                   {filteredServices.length === 1 ? "" : "s"}
                 </Badge>
+                {firebaseServices.length ? (
+                  <Badge variant="secondary">Detalles Firebase</Badge>
+                ) : null}
                 {hasActiveServiceSearch ? (
                   <Badge variant="secondary">Búsqueda activa</Badge>
                 ) : null}
@@ -213,18 +275,52 @@ export default async function ProviderPage({
             </div>
             {visibleServices.length ? (
               <>
-                <ul className="grid gap-2 sm:grid-cols-2">
+                <ul className="grid gap-3 sm:grid-cols-2">
                   {visibleServices.map((service) => (
                     <li
-                      key={service}
-                      className="flex min-w-0 flex-col gap-1 rounded-lg border px-3 py-2 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between"
+                      key={service.id}
+                      className="grid min-w-0 gap-3 rounded-xl border bg-background p-3"
                     >
-                      <span className="break-anywhere font-medium">
-                        {service}
-                      </span>
-                      <span className="shrink-0 text-sm text-muted-foreground">
-                        desde ${provider.priceFrom}
-                      </span>
+                      <div className="flex items-start gap-3">
+                        <Avatar className="size-14 rounded-xl">
+                          {service.imageUrl ? (
+                            <AvatarImage
+                              alt=""
+                              src={service.imageUrl}
+                              className="rounded-xl"
+                            />
+                          ) : null}
+                          <AvatarFallback className="rounded-xl">
+                            <ImageIcon className="size-5" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <span className="break-anywhere font-medium">
+                              {service.title}
+                            </span>
+                            <Badge variant="outline">${service.price}</Badge>
+                          </div>
+                          <p className="break-anywhere mt-1 line-clamp-3 text-sm text-muted-foreground">
+                            {service.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        <Badge variant="secondary">{service.category}</Badge>
+                        <Badge variant="outline">{service.duration}</Badge>
+                        {service.isPackage ? <Badge>Paquete</Badge> : null}
+                        {service.productsCount ? (
+                          <Badge variant="outline">
+                            {service.productsCount} productos
+                          </Badge>
+                        ) : null}
+                      </div>
+                      {service.productsPreview ? (
+                        <p className="break-anywhere rounded-lg border bg-muted/35 p-2 text-xs text-muted-foreground">
+                          {service.productsPreview}
+                        </p>
+                      ) : null}
                     </li>
                   ))}
                 </ul>

@@ -93,6 +93,11 @@
   `enterprise` now has `/admin/enterprises` with search, filters, pagination,
   mobile cards, and desktop tables; `punctuality_evalution` now has
   `/admin/quality` plus selected-provider quality summaries on `/provider`.
+- Added full Firebase service-record coverage: `/admin/services` now renders
+  service price, duration, image, provider, category, package/product metadata,
+  pricing mode, and descriptions with URL-backed search/filter/pagination;
+  public provider profiles now render detailed service cards instead of only
+  service names when Firebase service records are available.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -171,6 +176,13 @@
   collection labels rendered; `pageOverflow` was `0` on every checked route.
   Mobile admin routes reported only expected offscreen nodes inside the scoped
   horizontal nav rail.
+- Service catalog checks passed at `390x844` and `1280x900` for
+  `/admin/services`, `/admin/services?filter=package&page=1`,
+  `/admin/services?q=zzzz-no-service&page=99`, and live provider route
+  `/providers/R9x9I1tnNIa7iZpjlm5Oemid9qi1`: full service rows/cards,
+  package/product badges, filtered empty state, detailed provider service cards,
+  and the `Reservar` CTA rendered with `pageOverflow` at `0` and no overflowing
+  elements.
 
 ## Final Result
 
