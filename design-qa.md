@@ -98,6 +98,10 @@
   pricing mode, and descriptions with URL-backed search/filter/pagination;
   public provider profiles now render detailed service cards instead of only
   service names when Firebase service records are available.
+- Extended the `Reservar` dialog to use the same detailed Firebase services:
+  the picker now renders image slots, prices, duration, category, package and
+  product badges, metadata search, bounded scroll, and a confirmation summary
+  that preserves the chosen service details.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -183,6 +187,12 @@
   package/product badges, filtered empty state, detailed provider service cards,
   and the `Reservar` CTA rendered with `pageOverflow` at `0` and no overflowing
   elements.
+- Booking dialog checks passed on
+  `/providers/R9x9I1tnNIa7iZpjlm5Oemid9qi1` at `390x844` and `1280x900`: the
+  dialog rendered rich Firebase service cards with prices, package/product
+  badges, search input, and confirmation CTA; measured dialog bounds stayed
+  inside the actual client viewport with `pageOverflow` at `0`; the success
+  state preserved selected service name, price, category, and duration.
 
 ## Final Result
 

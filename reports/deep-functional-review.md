@@ -92,6 +92,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 27. Firebase service records were reduced to service names in public and admin UI.
     - Fix: Added full service normalization for price, duration, pricing mode, image, category, subcategory, package/product metadata, provider linkage, and descriptions; added `/admin/services` with search/filter/pagination/mobile cards; and upgraded `/providers/[id]` service cards to use the detailed Firebase service records.
 
+28. Booking dialog service selection still compressed Firebase services to names.
+    - Fix: Updated the reservation dialog to accept detailed service records, search across service metadata, render rich bounded service cards with image, price, duration, category, package/product badges, and carry the selected service detail into the confirmation state.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -243,6 +246,13 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
   service catalog copy, filters, filtered empty state, detailed Firebase
   provider service cards, package/product badges, and booking CTA rendered with
   `pageOverflow` at `0` and no overflowing elements.
+- Booking dialog service-picker checks passed on live provider route
+  `/providers/R9x9I1tnNIa7iZpjlm5Oemid9qi1` at `390x844` and `1280x900`:
+  detailed Firebase service cards rendered inside `Reservar`, including
+  package/product badges, prices, category, duration, search input, and
+  confirmation CTA. Actual client-width measurements kept the dialog within the
+  viewport with `pageOverflow` at `0`; confirming a reservation preserved the
+  selected service, price, category, and duration in the success state.
 
 ## Recommended Next Step
 

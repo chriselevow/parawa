@@ -373,7 +373,7 @@ export default async function ProviderPage({
             )}
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
-            <BookServiceDialog provider={provider} />
+            <BookServiceDialog provider={provider} services={services} />
             <Link
               href={`/messages/${provider.id}`}
               className={cn(
