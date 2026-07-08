@@ -83,6 +83,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 24. Firebase booking services were silently capped during normalization.
     - Fix: Removed the adapter cap, added full service-name metadata, compact service summaries, service-count badges, full-list search matching, bounded detail lists, and provider dashboard service metrics that use the full service array.
 
+25. Firebase provider-slot data was fetched but not surfaced in the provider dashboard.
+    - Fix: Added normalized provider availability summaries from `provider-slots`, connected them to the provider profile-health card, and added a bounded provider dashboard availability card with counts, next-slot preview, and explicit empty states for providers without matching slot docs.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -103,7 +106,7 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
    - Needed: decide whether to add `threads`/`messages` collections or reuse an existing source not yet identified.
 
 5. Provider dashboard uses read-derived metrics but not operational writes.
-   - Current behavior: when Firebase env is configured, dashboard metrics come from normalized bookings/providers; active requests support client-side search, filters, and pagination; service and agenda lists render without hidden caps.
+   - Current behavior: when Firebase env is configured, dashboard metrics come from normalized bookings/providers; active requests support client-side search, filters, and pagination; service and agenda lists render without hidden caps; provider-slot summaries now render in a compact availability card when the selected provider has matching slot docs.
    - Needed: accept/reject booking writes, availability edits, and provider profile updates.
 
 6. Storage assets are only partially rendered.
@@ -111,7 +114,7 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
    - Needed: validate service/user image paths, render available profile images, and decide whether private assets need signed URLs.
 
 7. Firebase data adapters are read-only.
-   - Current behavior: UI can normalize Firestore `users`, `services`, `bookings`, `reviews`, and `provider-slots` when a service account env is configured, then falls back to local mock data.
+   - Current behavior: UI can normalize Firestore `users`, `services`, `bookings`, `reviews`, and `provider-slots` when a service account env is configured, then falls back to local mock data. Provider-slot data is now represented in the provider dashboard, including an empty state when the selected provider has no matching slot docs.
    - Needed: validate the normalized fields against more real records and add write paths per workflow.
 
 8. Admin list controls are still client-side over normalized reads.
@@ -206,6 +209,13 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
   overrides. All checked routes rendered role-gated content, showed
   service-count badges where available, and reported `0` page-level horizontal
   overflow.
+- Provider availability smoke checks passed on `/provider` after provider login
+  at `390x844` and `1280x900`: the page rendered `Disponibilidad Firebase`,
+  `provider-slots` copy, `Horarios actualizados`, and the selected provider's
+  `Sin horarios cargados` state with `0` page-level horizontal overflow and no
+  overflowing elements. The selected demo provider was Diego Cruvelier with 13
+  reservations, which currently has no matching `provider-slots` summary in the
+  rendered dashboard.
 
 ## Recommended Next Step
 

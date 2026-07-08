@@ -254,6 +254,11 @@ export default async function ProviderDashboardPage({
   const { userId } = await getActiveSession()
   const data = await getParawaData()
   const provider = await getProviderForSession(userId)
+  const providerSlotSummary = provider
+    ? data.providerSlotSummaries.find(
+        (summary) => summary.providerId === provider.id
+      )
+    : undefined
   const providerBookings = data.bookings.filter(
     (booking) => booking.providerId === provider?.id
   )
@@ -376,8 +381,12 @@ export default async function ProviderDashboardPage({
         },
         {
           label: "Horarios actualizados",
-          value: data.source === "firebase" ? "Firebase" : "Demo",
-          complete: true,
+          value: providerSlotSummary
+            ? `${providerSlotSummary.totalDays} días`
+            : data.source === "firebase"
+              ? "Sin horarios"
+              : "Demo",
+          complete: Boolean(providerSlotSummary) || data.source !== "firebase",
         },
         {
           label: "Métodos de pago",
@@ -852,6 +861,97 @@ export default async function ProviderDashboardPage({
                 Portafolio
               </Button>
             </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Disponibilidad Firebase</CardTitle>
+              <CardDescription>
+                Resumen compacto de provider-slots.
+              </CardDescription>
+              <CardAction>
+                <Badge variant="outline">
+                  {providerSlotSummary?.totalDays ?? 0} días
+                </Badge>
+              </CardAction>
+            </CardHeader>
+            <CardContent>
+              {providerSlotSummary ? (
+                <div className="grid gap-4">
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      ["Disponibles", providerSlotSummary.availableSlots],
+                      ["Descanso", providerSlotSummary.restSlots],
+                      ["Bloqueados", providerSlotSummary.blockedSlots],
+                    ].map(([label, value]) => (
+                      <div
+                        key={label}
+                        className="rounded-xl border border-border/70 bg-background/80 p-3"
+                      >
+                        <p className="font-heading text-lg font-semibold">
+                          {value}
+                        </p>
+                        <p className="break-anywhere text-[0.7rem] text-muted-foreground">
+                          {label}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {providerSlotSummary.nextTimes.length ? (
+                    <div className="rounded-xl border border-primary/15 bg-primary/5 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-primary">
+                            Próximos cupos
+                          </p>
+                          <p className="break-anywhere text-xs text-muted-foreground">
+                            {providerSlotSummary.nextDateLabel ||
+                              providerSlotSummary.nextDate}
+                          </p>
+                        </div>
+                        <Badge className="bg-[#e7f7f3] text-[#087466]">
+                          {providerSlotSummary.nextTimes.length} visibles
+                        </Badge>
+                      </div>
+                      <div className="mt-3 flex max-h-24 flex-wrap gap-1.5 overflow-y-auto">
+                        {providerSlotSummary.nextTimes.map((time) => (
+                          <Badge key={time} variant="outline">
+                            {time}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <Empty className="border border-border/70 bg-background/70">
+                      <EmptyHeader>
+                        <EmptyMedia variant="icon">
+                          <Clock3Icon />
+                        </EmptyMedia>
+                        <EmptyTitle>Sin cupos próximos</EmptyTitle>
+                        <EmptyDescription>
+                          Hay días cargados, pero no hay horarios disponibles
+                          futuros para este proveedor.
+                        </EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
+                  )}
+                </div>
+              ) : (
+                <Empty className="border border-border/70 bg-background/70">
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <CalendarDaysIcon />
+                    </EmptyMedia>
+                    <EmptyTitle>Sin horarios cargados</EmptyTitle>
+                    <EmptyDescription>
+                      Cuando Firebase tenga provider-slots para este proveedor,
+                      aparecerán aquí como resumen compacto.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              )}
+            </CardContent>
           </Card>
 
           <Card>

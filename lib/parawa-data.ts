@@ -36,6 +36,18 @@ type FirebaseBooking = Record<string, unknown>
 type FirebaseReview = Record<string, unknown>
 type FirebaseSlot = Record<string, unknown>
 
+export type ProviderSlotSummary = {
+  providerId: string
+  totalDays: number
+  totalSlots: number
+  availableSlots: number
+  restSlots: number
+  blockedSlots: number
+  nextDate: string
+  nextDateLabel: string
+  nextTimes: string[]
+}
+
 export type ParawaDataSource = "firebase" | "mock"
 
 export type ParawaData = {
@@ -49,6 +61,7 @@ export type ParawaData = {
   pendingVerifications: PendingVerification[]
   adminBookings: AdminBookingRow[]
   recentAdminBookings: AdminBookingRow[]
+  providerSlotSummaries: ProviderSlotSummary[]
 }
 
 export type SessionIdentityOption = {
@@ -231,6 +244,76 @@ function summarizeServices(services: string[]) {
       : serviceNames.join(", ")
 
   return { service, serviceCount, serviceNames }
+}
+
+function slotItems(value: unknown) {
+  if (!Array.isArray(value)) return []
+
+  return value
+    .map((slot) => (slot && typeof slot === "object" ? slot : null))
+    .filter(Boolean) as Record<string, unknown>[]
+}
+
+function normalizeSlotSummaries(slots: FirebaseDocument<FirebaseSlot>[]) {
+  const byProvider = new Map<string, FirebaseDocument<FirebaseSlot>[]>()
+
+  for (const slot of slots) {
+    const providerId = text(slot.data.providerId) || docId(slot.data.provider)
+    if (!providerId) continue
+    byProvider.set(providerId, [...(byProvider.get(providerId) ?? []), slot])
+  }
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  return Array.from(byProvider.entries()).map(([providerId, providerSlots]) => {
+    const sortedSlots = [...providerSlots].sort((a, b) => {
+      const aDate = toDate(a.data.date) ?? toDate(a.data.dateStr)
+      const bDate = toDate(b.data.date) ?? toDate(b.data.dateStr)
+      return (aDate?.getTime() ?? 0) - (bDate?.getTime() ?? 0)
+    })
+    let totalSlots = 0
+    let availableSlots = 0
+    let restSlots = 0
+    let nextDate = ""
+    let nextDateLabel = ""
+    let nextTimes: string[] = []
+
+    for (const slotDoc of sortedSlots) {
+      const items = slotItems(slotDoc.data.slots)
+      totalSlots += items.length
+      availableSlots += items.filter((item) => bool(item.isAvailable)).length
+      restSlots += items.filter((item) => bool(item.isRestTime)).length
+
+      if (nextTimes.length) continue
+
+      const date = toDate(slotDoc.data.date) ?? toDate(slotDoc.data.dateStr)
+      if (date && date < today) continue
+
+      const availableTimes = items
+        .filter((item) => bool(item.isAvailable) && !bool(item.isRestTime))
+        .map((item) => text(item.value))
+        .filter(Boolean)
+
+      if (!availableTimes.length) continue
+
+      nextDate = text(slotDoc.data.dateStr) || formatShortDate(date, "")
+      nextDateLabel = formatShortDate(date, nextDate)
+      nextTimes = availableTimes.slice(0, 8)
+    }
+
+    return {
+      providerId,
+      totalDays: sortedSlots.length,
+      totalSlots,
+      availableSlots,
+      restSlots,
+      blockedSlots: Math.max(totalSlots - availableSlots - restSlots, 0),
+      nextDate,
+      nextDateLabel,
+      nextTimes,
+    } satisfies ProviderSlotSummary
+  })
 }
 
 function normalizeStatus(value: unknown): BookingStatus {
@@ -525,6 +608,7 @@ function normalizeFirebaseData(
     (booking) => booking.status === "completed"
   )
   const messageThreads = messageThreadsForBookings(normalizedBookings)
+  const providerSlotSummaries = normalizeSlotSummaries(slots)
 
   return {
     source: "firebase",
@@ -549,6 +633,7 @@ function normalizeFirebaseData(
     pendingVerifications,
     adminBookings,
     recentAdminBookings,
+    providerSlotSummaries,
   }
 }
 
@@ -564,6 +649,7 @@ function mockData(): ParawaData {
     pendingVerifications: mockPendingVerifications,
     adminBookings: mockRecentAdminBookings,
     recentAdminBookings: mockRecentAdminBookings,
+    providerSlotSummaries: [],
   }
 }
 
@@ -612,6 +698,16 @@ export async function getProviderForSession(providerId?: string) {
     counts.set(booking.providerId, (counts.get(booking.providerId) ?? 0) + 1)
     return counts
   }, new Map<string, number>())
+  const slotDaysByProvider = data.providerSlotSummaries.reduce(
+    (counts, summary) => {
+      counts.set(summary.providerId, summary.totalDays)
+      return counts
+    },
+    new Map<string, number>()
+  )
+  const providerScore = (provider: Provider) =>
+    (providerBookings.get(provider.id) ?? 0) * 4 +
+    (slotDaysByProvider.get(provider.id) ?? 0)
 
   if (providerId) {
     const sessionProvider = data.providers.find(
@@ -622,9 +718,9 @@ export async function getProviderForSession(providerId?: string) {
 
   return data.providers.reduce<Provider | undefined>((current, candidate) => {
     if (!current) return candidate
-    const currentCount = providerBookings.get(current.id) ?? 0
-    const candidateCount = providerBookings.get(candidate.id) ?? 0
-    return candidateCount > currentCount ? candidate : current
+    return providerScore(candidate) > providerScore(current)
+      ? candidate
+      : current
   }, undefined)
 }
 
@@ -681,6 +777,14 @@ export async function getAdminData() {
   }
 }
 
+export async function getProviderSlotSummary(providerId?: string) {
+  if (!providerId) return undefined
+  const data = await getParawaData()
+  return data.providerSlotSummaries.find(
+    (summary) => summary.providerId === providerId
+  )
+}
+
 export async function getSessionIdentityOptions(): Promise<{
   client?: SessionIdentityOption
   provider?: SessionIdentityOption
@@ -690,6 +794,13 @@ export async function getSessionIdentityOptions(): Promise<{
     counts.set(booking.providerId, (counts.get(booking.providerId) ?? 0) + 1)
     return counts
   }, new Map<string, number>())
+  const slotDaysByProvider = data.providerSlotSummaries.reduce(
+    (counts, summary) => {
+      counts.set(summary.providerId, summary.totalDays)
+      return counts
+    },
+    new Map<string, number>()
+  )
   const clientCounts = data.bookings.reduce((counts, booking) => {
     if (!booking.clientId) return counts
     const current = counts.get(booking.clientId) ?? {
@@ -704,7 +815,11 @@ export async function getSessionIdentityOptions(): Promise<{
   }, new Map<string, { count: number; label: string }>())
 
   const provider = [...data.providers].sort(
-    (a, b) => (providerCounts.get(b.id) ?? 0) - (providerCounts.get(a.id) ?? 0)
+    (a, b) =>
+      (providerCounts.get(b.id) ?? 0) * 4 +
+      (slotDaysByProvider.get(b.id) ?? 0) -
+      ((providerCounts.get(a.id) ?? 0) * 4 +
+        (slotDaysByProvider.get(a.id) ?? 0))
   )[0]
   const client = [...clientCounts.entries()].sort(
     (a, b) => b[1].count - a[1].count

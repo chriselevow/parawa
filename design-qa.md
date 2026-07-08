@@ -85,6 +85,10 @@
   service-name metadata, show compact summaries with service-count badges,
   search across the complete service list, and expose full service lists in
   bounded detail areas.
+- Added provider availability data-fit UI: `provider-slots` now normalize into
+  provider dashboard summaries, profile-health schedule status, bounded slot
+  counts, next-slot previews, and explicit no-schedule states for selected
+  providers without matching slot docs.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -150,6 +154,13 @@
   `/admin`, and `/provider` at mobile and desktop viewport overrides: each
   route rendered role-gated content, showed service-count badges where
   available, and reported `0` page-level horizontal overflow.
+- Provider availability checks passed after provider login on `/provider` at
+  `390x844` and `1280x900`: the page rendered `Disponibilidad Firebase`,
+  `provider-slots` copy, `Horarios actualizados`, and the selected provider's
+  `Sin horarios cargados` state with `0` page-level horizontal overflow and no
+  overflowing elements. The active demo provider was Diego Cruvelier with 13
+  reservations, so this pass verifies the empty-state branch for a provider
+  without matching slot docs.
 
 ## Final Result
 
