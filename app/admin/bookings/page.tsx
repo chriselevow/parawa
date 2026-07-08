@@ -60,7 +60,15 @@ function rowMatchesQuery(row: AdminBookingRow, query: string) {
   if (!query) return true
   const normalizedQuery = query.toLowerCase()
 
-  return [row.id, row.client, row.provider, row.service, row.status]
+  return [
+    row.id,
+    row.client,
+    row.provider,
+    row.service,
+    row.serviceNames?.join(" "),
+    row.serviceCount,
+    row.status,
+  ]
     .join(" ")
     .toLowerCase()
     .includes(normalizedQuery)
@@ -112,6 +120,23 @@ function BookingDetailDialog({
               </span>
             </div>
           ))}
+          {row.serviceNames && row.serviceNames.length > 1 ? (
+            <div className="grid gap-2 rounded-lg border bg-background/80 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-muted-foreground">Servicios</span>
+                <Badge variant="secondary">
+                  {row.serviceCount ?? row.serviceNames.length} servicios
+                </Badge>
+              </div>
+              <div className="flex max-h-32 flex-wrap gap-1.5 overflow-y-auto">
+                {row.serviceNames.map((service) => (
+                  <Badge key={service} variant="outline">
+                    {service}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          ) : null}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span className="text-muted-foreground">Estado</span>
             <Badge variant="outline">{row.status}</Badge>
@@ -206,6 +231,11 @@ export default async function AdminBookingsPage({
                       <CardTitle className="break-anywhere">
                         {row.service}
                       </CardTitle>
+                      {row.serviceCount && row.serviceCount > 1 ? (
+                        <Badge variant="secondary">
+                          {row.serviceCount} servicios
+                        </Badge>
+                      ) : null}
                     </div>
                     <Badge variant="outline">{row.status}</Badge>
                   </div>
@@ -265,7 +295,14 @@ export default async function AdminBookingsPage({
                       {row.provider}
                     </TableCell>
                     <TableCell className="break-anywhere whitespace-normal">
-                      {row.service}
+                      <div className="flex min-w-0 flex-col gap-1">
+                        <span>{row.service}</span>
+                        {row.serviceCount && row.serviceCount > 1 ? (
+                          <Badge variant="secondary" className="w-fit">
+                            {row.serviceCount} servicios
+                          </Badge>
+                        ) : null}
+                      </div>
                     </TableCell>
                     <TableCell>${row.amount}</TableCell>
                     <TableCell>

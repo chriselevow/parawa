@@ -81,6 +81,10 @@
   shows a bounded latest-message window with a load-earlier control,
   visible-count copy, a mobile-safe quick-reply rail, and a composer that keeps
   the local send/reply demo behavior intact.
+- Removed the hidden Firebase booking-service cap: booking rows now keep full
+  service-name metadata, show compact summaries with service-count badges,
+  search across the complete service list, and expose full service lists in
+  bounded detail areas.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -139,6 +143,13 @@
   system message, sending a test message added the local reply and cleared the
   input with `0` overflow; desktop viewport override also showed the bounded
   controls with `0` overflow.
+- Booking service metadata now fits Firebase multi-service bookings without
+  truncating at normalization time; affected surfaces share compact summaries,
+  count badges, full-list search matching, and bounded full-list detail areas.
+- Post-patch browser checks passed on `/bookings`, `/admin/bookings`,
+  `/admin`, and `/provider` at mobile and desktop viewport overrides: each
+  route rendered role-gated content, showed service-count badges where
+  available, and reported `0` page-level horizontal overflow.
 
 ## Final Result
 

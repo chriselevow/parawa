@@ -160,6 +160,11 @@ export default async function AdminDashboardPage() {
                       {row.id}
                     </p>
                     <p className="break-anywhere font-medium">{row.service}</p>
+                    {row.serviceCount && row.serviceCount > 1 ? (
+                      <Badge variant="secondary" className="mt-1 w-fit">
+                        {row.serviceCount} servicios
+                      </Badge>
+                    ) : null}
                   </div>
                   <Badge variant="outline">{row.status}</Badge>
                 </div>
@@ -191,7 +196,16 @@ export default async function AdminDashboardPage() {
                     </TableCell>
                     <TableCell>{row.client}</TableCell>
                     <TableCell>{row.provider}</TableCell>
-                    <TableCell>{row.service}</TableCell>
+                    <TableCell>
+                      <div className="flex min-w-0 flex-col gap-1">
+                        <span className="break-anywhere">{row.service}</span>
+                        {row.serviceCount && row.serviceCount > 1 ? (
+                          <Badge variant="secondary" className="w-fit">
+                            {row.serviceCount} servicios
+                          </Badge>
+                        ) : null}
+                      </div>
+                    </TableCell>
                     <TableCell>${row.amount}</TableCell>
                     <TableCell>
                       <Badge variant="outline">{row.status}</Badge>

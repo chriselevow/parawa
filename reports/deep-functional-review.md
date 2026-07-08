@@ -80,6 +80,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 23. Chat thread detail rendered the full message array at once.
     - Fix: Added a bounded latest-message window, load-earlier control, visible-count copy, mobile-safe quick-reply rail, and richer thread seed data so real Firebase message histories can fit the same surface.
 
+24. Firebase booking services were silently capped during normalization.
+    - Fix: Removed the adapter cap, added full service-name metadata, compact service summaries, service-count badges, full-list search matching, bounded detail lists, and provider dashboard service metrics that use the full service array.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -193,6 +196,16 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
   latest-message window, load-earlier control, visible-count copy, quick
   replies, composer, send-and-demo-reply flow, cleared input after send, and
   `0` page-level horizontal overflow at mobile and desktop viewport overrides.
+- Latest booking-service data-fit patch removed the hidden four-service
+  normalization cap. Booking cards, booking detail, admin bookings, admin
+  dashboard, messages, provider request cards, agenda rows, admin booking
+  detail, and provider service metrics now receive compact service summaries
+  plus full service-name metadata for search and bounded detail display.
+- Browser smoke checks after the booking-service patch passed on `/bookings`,
+  `/admin/bookings`, `/admin`, and `/provider` at mobile and desktop viewport
+  overrides. All checked routes rendered role-gated content, showed
+  service-count badges where available, and reported `0` page-level horizontal
+  overflow.
 
 ## Recommended Next Step
 

@@ -76,6 +76,11 @@ export default async function BookingDetailPage({
                   <h1 className="break-anywhere mt-3 font-heading text-2xl leading-snug font-medium">
                     {booking.service}
                   </h1>
+                  {booking.serviceCount && booking.serviceCount > 1 ? (
+                    <Badge variant="secondary" className="mt-2">
+                      {booking.serviceCount} servicios
+                    </Badge>
+                  ) : null}
                   <CardDescription className="break-anywhere">
                     {booking.providerName} · {booking.code}
                   </CardDescription>
@@ -149,6 +154,27 @@ export default async function BookingDetailPage({
               ) : null}
             </CardFooter>
           </Card>
+
+          {booking.serviceNames && booking.serviceNames.length > 1 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Servicios incluidos</CardTitle>
+                <CardDescription>
+                  {booking.serviceCount ?? booking.serviceNames.length}{" "}
+                  servicios en esta solicitud.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex max-h-40 flex-wrap gap-2 overflow-y-auto rounded-xl border bg-background p-3">
+                  {booking.serviceNames.map((service) => (
+                    <Badge key={service} variant="outline">
+                      {service}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
 
           <Card>
             <CardHeader>

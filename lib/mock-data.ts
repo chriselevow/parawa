@@ -31,6 +31,8 @@ export type Booking = {
   providerId: string
   providerName: string
   service: string
+  serviceNames?: string[]
+  serviceCount?: number
   date: string
   shortDate: string
   time: string
@@ -51,6 +53,8 @@ export type MessageThread = {
   providerId: string
   providerName: string
   service: string
+  serviceNames?: string[]
+  serviceCount?: number
   bookingId: string
   bookingStatus: BookingStatus
   timestamp: string

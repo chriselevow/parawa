@@ -63,6 +63,8 @@ function threadMatchesQuery(
     thread.providerId,
     thread.providerName,
     thread.service,
+    thread.serviceNames?.join(" "),
+    thread.serviceCount,
     thread.preview,
     thread.bookingId,
     thread.bookingStatus,
@@ -191,6 +193,11 @@ export default async function MessagesPage({
                       {thread.service}
                     </span>
                   </Badge>
+                  {thread.serviceCount && thread.serviceCount > 1 ? (
+                    <Badge variant="secondary">
+                      {thread.serviceCount} servicios
+                    </Badge>
+                  ) : null}
                   <Badge variant="secondary">
                     {statusLabel(thread.bookingStatus)}
                   </Badge>

@@ -15,6 +15,17 @@ export type PendingVerification = {
   documents: string
 }
 
+export type AdminBookingRow = {
+  id: string
+  client: string
+  provider: string
+  service: string
+  serviceNames?: string[]
+  serviceCount?: number
+  amount: number
+  status: string
+}
+
 export const adminStats = {
   totalUsers: 1248,
   activeProviders: 186,
@@ -83,7 +94,7 @@ export const pendingVerifications: PendingVerification[] = [
   },
 ]
 
-export const recentAdminBookings = [
+export const recentAdminBookings: AdminBookingRow[] = [
   {
     id: "AB-1042",
     client: "Pedro L.",

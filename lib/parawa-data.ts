@@ -5,6 +5,7 @@ import {
   adminUsers as mockAdminUsers,
   pendingVerifications as mockPendingVerifications,
   recentAdminBookings as mockRecentAdminBookings,
+  type AdminBookingRow,
   type AdminUser,
   type PendingVerification,
 } from "@/lib/admin-mock-data"
@@ -34,8 +35,6 @@ type FirebaseService = Record<string, unknown>
 type FirebaseBooking = Record<string, unknown>
 type FirebaseReview = Record<string, unknown>
 type FirebaseSlot = Record<string, unknown>
-
-type AdminBookingRow = (typeof mockRecentAdminBookings)[number]
 
 export type ParawaDataSource = "firebase" | "mock"
 
@@ -218,11 +217,20 @@ function bookingServices(
   serviceById: Map<string, FirebaseDocument<FirebaseService>>
 ) {
   if (!Array.isArray(value)) return ["Servicio Parawa"]
-  const services = unique(
-    value.map((item) => serviceTitle(item, serviceById))
-  ).slice(0, 4)
+  const services = unique(value.map((item) => serviceTitle(item, serviceById)))
 
   return services.length ? services : ["Servicio Parawa"]
+}
+
+function summarizeServices(services: string[]) {
+  const serviceNames = services.length ? services : ["Servicio Parawa"]
+  const serviceCount = serviceNames.length
+  const service =
+    serviceCount > 2
+      ? `${serviceNames[0]}, ${serviceNames[1]} +${serviceCount - 2} servicios`
+      : serviceNames.join(", ")
+
+  return { service, serviceCount, serviceNames }
 }
 
 function normalizeStatus(value: unknown): BookingStatus {
@@ -305,6 +313,8 @@ function messageThreadsForBookings(bookings: Booking[]) {
           providerId: booking.providerId,
           providerName: booking.providerName,
           service: booking.service,
+          serviceNames: booking.serviceNames,
+          serviceCount: booking.serviceCount,
           bookingId: booking.id,
           bookingStatus: booking.status,
           timestamp: booking.createdAt,
@@ -415,12 +425,14 @@ function normalizeFirebaseData(
       const providerId = docId(booking.data.provider)
       const customerId = docId(booking.data.customer)
       const providerName = fullName(userById.get(providerId))
-      const services = bookingServices(booking.data.services, serviceById)
+      const serviceSummary = summarizeServices(
+        bookingServices(booking.data.services, serviceById)
+      )
       const status = normalizeStatus(booking.data.status)
       const startAt = toDate(booking.data.startAt)
       const shortDate = formatShortDate(startAt, text(booking.data.startDate))
       const time = formatTime(startAt, text(booking.data.startTime))
-      const service = services.join(", ")
+      const service = serviceSummary.service
       const total = number(booking.data.total, number(booking.data.subTotal, 0))
       const serviceLocation = text(booking.data.location)
         ? "A domicilio"
@@ -434,6 +446,8 @@ function normalizeFirebaseData(
         providerId,
         providerName,
         service,
+        serviceNames: serviceSummary.serviceNames,
+        serviceCount: serviceSummary.serviceCount,
         date: formatDateTime(startAt, `${shortDate} · ${time}`),
         shortDate: shortDate || "Por confirmar",
         time: time || "Por confirmar",
@@ -486,6 +500,8 @@ function normalizeFirebaseData(
       client: booking.clientName,
       provider: booking.providerName,
       service: booking.service,
+      serviceNames: booking.serviceNames,
+      serviceCount: booking.serviceCount,
       amount: booking.total,
       status: booking.status,
     })

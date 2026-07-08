@@ -63,6 +63,8 @@ function bookingMatchesQuery(booking: ClientBooking, query: string) {
     booking.code,
     booking.providerName,
     booking.service,
+    booking.serviceNames?.join(" "),
+    booking.serviceCount,
     booking.date,
     booking.shortDate,
     booking.time,
@@ -166,6 +168,11 @@ export default async function BookingsPage({
                   <CardTitle className="break-anywhere">
                     {booking.service}
                   </CardTitle>
+                  {booking.serviceCount && booking.serviceCount > 1 ? (
+                    <Badge variant="secondary">
+                      {booking.serviceCount} servicios
+                    </Badge>
+                  ) : null}
                   <CardDescription className="break-anywhere">
                     {booking.providerName}
                   </CardDescription>

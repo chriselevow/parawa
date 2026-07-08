@@ -125,6 +125,11 @@ export function MessageThreadDemo({
               <div className="flex flex-wrap items-center gap-2">
                 <Badge>{statusLabel(booking.status)}</Badge>
                 <p className="break-anywhere font-medium">{booking.service}</p>
+                {booking.serviceCount && booking.serviceCount > 1 ? (
+                  <Badge variant="secondary">
+                    {booking.serviceCount} servicios
+                  </Badge>
+                ) : null}
                 <span className="break-anywhere text-xs font-medium text-muted-foreground">
                   {booking.code}
                 </span>

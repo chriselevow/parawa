@@ -56,6 +56,27 @@ const PROVIDER_REQUEST_FILTER_OPTIONS = [
   { label: "Confirmadas", value: "accepted" },
 ]
 
+type ProviderRequestRow = {
+  id: string
+  client: string
+  service: string
+  serviceCount?: number
+  when: string
+  amount: string
+  distance: string
+  status: string
+  note: string
+}
+
+type ProviderAgendaRow = {
+  id: string
+  time: string
+  client: string
+  service: string
+  serviceCount?: number
+  status: string
+}
+
 const fallbackProviderProfile = {
   name: "María González",
   business: "Maria Nails Studio",
@@ -99,7 +120,7 @@ const fallbackStats = [
   },
 ]
 
-const fallbackRequests = [
+const fallbackRequests: ProviderRequestRow[] = [
   {
     id: "r1",
     client: "Pedro L.",
@@ -132,7 +153,7 @@ const fallbackRequests = [
   },
 ]
 
-const fallbackAgenda = [
+const fallbackAgenda: ProviderAgendaRow[] = [
   {
     id: "a1",
     time: "10:00",
@@ -195,6 +216,8 @@ function providerBookingMatchesQuery(booking: Booking, query: string) {
     booking.clientName,
     booking.providerName,
     booking.service,
+    booking.serviceNames?.join(" "),
+    booking.serviceCount,
     booking.date,
     booking.shortDate,
     booking.time,
@@ -308,17 +331,20 @@ export default async function ProviderDashboardPage({
     requestPage,
     PROVIDER_REQUEST_PAGE_LIMIT
   )
-  const requestRows = visibleRequestBookings.map((booking) => ({
-    id: booking.id,
-    client: booking.clientName,
-    service: booking.service,
-    when: booking.date,
-    amount: `$${booking.total}`,
-    distance: booking.serviceLocation,
-    status:
-      booking.status === "pending" ? "Nueva" : statusLabel(booking.status),
-    note: booking.notes,
-  }))
+  const requestRows: ProviderRequestRow[] = visibleRequestBookings.map(
+    (booking) => ({
+      id: booking.id,
+      client: booking.clientName,
+      service: booking.service,
+      serviceCount: booking.serviceCount,
+      when: booking.date,
+      amount: `$${booking.total}`,
+      distance: booking.serviceLocation,
+      status:
+        booking.status === "pending" ? "Nueva" : statusLabel(booking.status),
+      note: booking.notes,
+    })
+  )
   const usesFallbackRequests = !provider && data.source !== "firebase"
   const requests = usesFallbackRequests ? fallbackRequests : requestRows
   const hasActiveRequestFilters =
@@ -329,11 +355,12 @@ export default async function ProviderDashboardPage({
   const acceptedRequestCount = activeBookings.filter(
     (booking) => booking.status === "accepted"
   ).length
-  const agendaRows = activeBookings.map((booking) => ({
+  const agendaRows: ProviderAgendaRow[] = activeBookings.map((booking) => ({
     id: booking.id,
     time: booking.time,
     client: booking.clientName,
     service: booking.service,
+    serviceCount: booking.serviceCount,
     status: statusLabel(booking.status),
   }))
   const agenda =
@@ -378,8 +405,11 @@ export default async function ProviderDashboardPage({
         ? provider.services
         : fallbackServices.map((service) => service.name)
       ).map((name) => {
+        const normalizedName = name.toLowerCase()
         const relatedBookings = providerBookings.filter((booking) =>
-          booking.service.toLowerCase().includes(name.toLowerCase())
+          (booking.serviceNames ?? [booking.service]).some((service) =>
+            service.toLowerCase().includes(normalizedName)
+          )
         )
         return {
           name,
@@ -608,6 +638,11 @@ export default async function ProviderDashboardPage({
                         <p className="break-anywhere mt-1 text-sm text-muted-foreground">
                           {req.service} · {req.when}
                         </p>
+                        {req.serviceCount && req.serviceCount > 1 ? (
+                          <Badge variant="secondary" className="mt-2 w-fit">
+                            {req.serviceCount} servicios
+                          </Badge>
+                        ) : null}
                         <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                           <span className="inline-flex items-center gap-1">
                             <MapPinIcon className="size-3.5" />
@@ -734,6 +769,11 @@ export default async function ProviderDashboardPage({
                         <p className="break-anywhere text-sm text-muted-foreground">
                           {slot.service}
                         </p>
+                        {slot.serviceCount && slot.serviceCount > 1 ? (
+                          <Badge variant="secondary" className="mt-2 w-fit">
+                            {slot.serviceCount} servicios
+                          </Badge>
+                        ) : null}
                       </div>
                       <Badge
                         className="w-fit bg-[#e7f7f3] text-[#087466]"
