@@ -18,11 +18,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { providers } from "@/lib/mock-data"
 import { buttonVariants } from "@/components/ui/button"
+import { getProviders } from "@/lib/parawa-data"
 import { cn } from "@/lib/utils"
 
-export default function AdminProvidersPage() {
+export default async function AdminProvidersPage() {
+  const providers = await getProviders()
+
   return (
     <AdminShell
       active="/admin/providers"

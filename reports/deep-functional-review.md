@@ -7,7 +7,7 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 
 - Reviewed primary routes: landing, login, discover, provider profile, bookings, messages, provider dashboard, admin bookings.
 - Checked current code paths for mock data, dead controls, role routing, and Firebase integration gaps.
-- Verified Firebase inventory separately: Firestore has real `users`, `services`, `bookings`, `reviews`, `provider-slots`, `enterprise`, and `punctuality_evalution`; local app still uses mock data.
+- Verified Firebase inventory separately: Firestore has real `users`, `services`, `bookings`, `reviews`, `provider-slots`, `enterprise`, and `punctuality_evalution`; the local app now has a read-only adapter with mock fallback.
 
 ## Findings Fixed
 
@@ -41,35 +41,34 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 10. Desktop tables were doing too much work on phones.
     - Fix: Kept desktop tables for admin density, but hid them on mobile behind readable cards and gave tables a stable minimum width for larger screens.
 
+11. Firebase records needed to fit the existing UI models.
+    - Fix: Added a read-only Firestore adapter for users, providers, services, bookings, reviews, provider slots, admin summaries, derived booking chats, and provider profile images with safe mock fallback.
+
 ## Remaining Functional Gaps
 
-1. Firebase Auth is not connected.
+1. Firebase Auth is not connected to real sessions.
    - Current behavior: role cookie demo.
    - Needed: Firebase Auth sign-in, role claims/profile lookup, protected routes based on real user identity.
 
-2. Firestore data is not used by UI.
-   - Current behavior: `lib/mock-data.ts` and `lib/admin-mock-data.ts`.
-   - Needed: read-only adapters for `users`, `services`, `bookings`, `reviews`, and `provider-slots`.
-
-3. Writes are not persisted.
+2. Writes are not persisted.
    - Current behavior: booking, review, and message states are local demo flows.
    - Needed: create booking, update booking status, create review, and create chat/message records.
 
-4. Messaging schema is unclear.
+3. Messaging schema is unclear.
    - Current Firebase inventory did not show a clear messages collection.
    - Needed: decide whether to add `threads`/`messages` collections or reuse an existing source not yet identified.
 
-5. Provider dashboard uses demo metrics.
-   - Current behavior: dashboard is realistic but computed from local constants.
-   - Needed: derive metrics from bookings, services, reviews, and provider slots.
+4. Provider dashboard uses read-derived metrics but not operational writes.
+   - Current behavior: when Firebase env is configured, dashboard metrics come from normalized bookings/providers; otherwise it falls back to demo data.
+   - Needed: accept/reject booking writes, availability edits, and provider profile updates.
 
-6. Storage assets are not rendered.
+5. Storage assets are only partially rendered.
    - Current Firebase Storage has provider/service assets.
-   - Needed: map service/user image paths to public or signed URLs and render them in cards and profiles.
+   - Needed: validate service/user image paths, render available profile images, and decide whether private assets need signed URLs.
 
-7. Firebase data adapters are still missing.
-   - Current behavior: UI now has safer containers for long/missing data, but records are still manually shaped in mock arrays.
-   - Needed: normalize Firestore `users`, `services`, `bookings`, `reviews`, and `provider-slots` into the UI models before replacing mock data.
+6. Firebase data adapters are read-only.
+   - Current behavior: UI can normalize Firestore `users`, `services`, `bookings`, `reviews`, and `provider-slots` when a service account env is configured, then falls back to local mock data.
+   - Needed: validate the normalized fields against more real records and add write paths per workflow.
 
 ## Responsive/Data-Fit Checks
 
@@ -81,4 +80,4 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 
 ## Recommended Next Step
 
-Implement read-only Firebase adapters first. Pull real services, providers, bookings, reviews, and images into the current UI without creating or mutating production data. Once the live read model is stable, add writes one workflow at a time.
+Validate the read-only Firebase adapter against live pages, then add Firebase Auth and one write workflow at a time: provider accept/reject, booking creation, review creation, then real messages.

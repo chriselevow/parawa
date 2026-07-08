@@ -16,9 +16,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { adminUsers } from "@/lib/admin-mock-data"
+import { getAdminData } from "@/lib/parawa-data"
 
-export default function AdminUsersPage() {
+export default async function AdminUsersPage() {
+  const { adminUsers } = await getAdminData()
+
   return (
     <AdminShell
       active="/admin/users"

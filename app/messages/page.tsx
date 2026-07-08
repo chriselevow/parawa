@@ -15,9 +15,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { getBooking, messageThreads, statusLabel } from "@/lib/mock-data"
+import { statusLabel } from "@/lib/mock-data"
+import { getBookings, getMessageThreads } from "@/lib/parawa-data"
 
-export default function MessagesPage() {
+export default async function MessagesPage() {
+  const [messageThreads, bookings] = await Promise.all([
+    getMessageThreads(),
+    getBookings(),
+  ])
+  const bookingById = new Map(bookings.map((booking) => [booking.id, booking]))
+
   return (
     <PrototypeShell active="/messages">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -35,7 +42,7 @@ export default function MessagesPage() {
 
       <div className="grid gap-3">
         {messageThreads.map((thread) => {
-          const booking = getBooking(thread.bookingId)
+          const booking = bookingById.get(thread.bookingId)
 
           return (
             <Link key={thread.id} href={`/messages/${thread.id}`}>

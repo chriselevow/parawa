@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { categories, providers, type Provider } from "@/lib/mock-data"
+import type { Provider } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
 
 function providerMatchesQuery(provider: Provider, query: string) {
@@ -28,9 +28,15 @@ function providerMatchesQuery(provider: Provider, query: string) {
     .includes(normalizedQuery)
 }
 
-export function DiscoverExperience() {
+export function DiscoverExperience({
+  categories,
+  providers,
+}: {
+  categories: string[]
+  providers: Provider[]
+}) {
   const [query, setQuery] = useState("")
-  const [category, setCategory] = useState<(typeof categories)[number]>("Todos")
+  const [category, setCategory] = useState("Todos")
 
   const filteredProviders = useMemo(() => {
     return providers.filter((provider) => {
@@ -38,7 +44,7 @@ export function DiscoverExperience() {
         category === "Todos" || provider.category === category
       return matchesCategory && providerMatchesQuery(provider, query)
     })
-  }, [category, query])
+  }, [category, providers, query])
 
   return (
     <>

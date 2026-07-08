@@ -4,7 +4,7 @@ import { MapPinIcon, MessageCircleIcon, StarIcon } from "lucide-react"
 
 import { BookServiceDialog } from "@/components/book-service-dialog"
 import { PrototypeShell } from "@/components/prototype-shell"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { buttonVariants } from "@/components/ui/button"
-import { getProvider } from "@/lib/mock-data"
+import { getProvider } from "@/lib/parawa-data"
 import { cn } from "@/lib/utils"
 
 export default async function ProviderPage({
@@ -24,7 +24,7 @@ export default async function ProviderPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const provider = getProvider(id)
+  const provider = await getProvider(id)
   if (!provider) notFound()
 
   const initials = provider.name
@@ -49,6 +49,9 @@ export default async function ProviderPage({
         <CardHeader>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
             <Avatar className="size-16 shrink-0">
+              {provider.imageUrl ? (
+                <AvatarImage src={provider.imageUrl} alt="" />
+              ) : null}
               <AvatarFallback className="text-lg">{initials}</AvatarFallback>
             </Avatar>
             <div className="flex min-w-0 flex-1 flex-col gap-2">

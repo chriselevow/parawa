@@ -31,9 +31,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { statusLabel } from "@/lib/mock-data"
+import { getParawaData } from "@/lib/parawa-data"
 import { cn } from "@/lib/utils"
 
-const providerProfile = {
+const fallbackProviderProfile = {
   name: "María González",
   business: "Maria Nails Studio",
   category: "Uñas y manicure",
@@ -45,7 +47,7 @@ const providerProfile = {
   profileScore: 92,
 }
 
-const stats = [
+const fallbackStats = [
   {
     icon: InboxIcon,
     label: "Solicitudes nuevas",
@@ -76,7 +78,7 @@ const stats = [
   },
 ]
 
-const requests = [
+const fallbackRequests = [
   {
     id: "r1",
     client: "Pedro L.",
@@ -109,7 +111,7 @@ const requests = [
   },
 ]
 
-const agenda = [
+const fallbackAgenda = [
   {
     time: "10:00",
     client: "Nathalia M.",
@@ -130,14 +132,14 @@ const agenda = [
   },
 ]
 
-const profileHealth = [
+const fallbackProfileHealth = [
   { label: "Fotos de trabajos", value: "12/15", complete: true },
   { label: "Horarios actualizados", value: "Hoy", complete: true },
   { label: "Métodos de pago", value: "2 activos", complete: true },
   { label: "Política de cancelación", value: "Falta", complete: false },
 ]
 
-const services = [
+const fallbackServices = [
   { name: "Gel nails", revenue: "$210", bookings: "6 reservas", trend: "+24%" },
   {
     name: "Manicure clásico",
@@ -153,13 +155,158 @@ const services = [
   },
 ]
 
-const activity = [
+const fallbackActivity = [
   "Lucía R. abrió el chat hace 8 min",
   "Tu perfil recibió 43 visitas esta semana",
   "Pago de Pedro L. listo al confirmar",
 ]
 
-export default function ProviderDashboardPage() {
+export default async function ProviderDashboardPage() {
+  const data = await getParawaData()
+  const provider = data.providers[0]
+  const providerBookings = data.bookings.filter(
+    (booking) => booking.providerId === provider?.id
+  )
+  const activeBookings = providerBookings.filter(
+    (booking) => booking.status === "accepted" || booking.status === "pending"
+  )
+  const completedBookings = providerBookings.filter(
+    (booking) => booking.status === "completed"
+  )
+  const providerProfile = provider
+    ? {
+        name: provider.name,
+        business: provider.name,
+        category: provider.category,
+        area: provider.area,
+        status: activeBookings.length ? "Abierta hoy" : "Perfil activo",
+        response: data.source === "firebase" ? "Firebase" : "4 min",
+        rating: String(provider.rating),
+        reviews: `${provider.reviews} reseñas`,
+        profileScore: provider.verified ? 92 : 68,
+      }
+    : fallbackProviderProfile
+  const providerProfileHref = `/providers/${provider?.id ?? "maria-nails"}`
+  const stats = provider
+    ? [
+        {
+          icon: InboxIcon,
+          label: "Solicitudes nuevas",
+          value: String(
+            providerBookings.filter((booking) => booking.status === "pending")
+              .length
+          ),
+          detail: `${activeBookings.length} activas`,
+          tone: "text-primary",
+        },
+        {
+          icon: CalendarDaysIcon,
+          label: "Citas próximas",
+          value: String(activeBookings.length),
+          detail: `${providerBookings.length} reservas totales`,
+          tone: "text-[#0f8f7a]",
+        },
+        {
+          icon: WalletIcon,
+          label: "Ingresos semana",
+          value: `$${completedBookings.reduce(
+            (sum, booking) => sum + booking.total,
+            0
+          )}`,
+          detail: `${completedBookings.length} completadas`,
+          tone: "text-[#a06400]",
+        },
+        {
+          icon: StarIcon,
+          label: "Calidad",
+          value: providerProfile.rating,
+          detail: providerProfile.reviews,
+          tone: "text-[#c48100]",
+        },
+      ]
+    : fallbackStats
+  const requestRows = activeBookings.slice(0, 6).map((booking) => ({
+    id: booking.id,
+    client: booking.clientName,
+    service: booking.service,
+    when: booking.date,
+    amount: `$${booking.total}`,
+    distance: booking.serviceLocation,
+    status:
+      booking.status === "pending" ? "Nueva" : statusLabel(booking.status),
+    note: booking.notes,
+  }))
+  const requests = requestRows.length ? requestRows : fallbackRequests
+  const agendaRows = activeBookings.slice(0, 5).map((booking) => ({
+    time: booking.time,
+    client: booking.clientName,
+    service: booking.service,
+    status: statusLabel(booking.status),
+  }))
+  const agenda = agendaRows.length ? agendaRows : fallbackAgenda
+  const profileHealth = provider
+    ? [
+        {
+          label: "Servicios publicados",
+          value: `${provider.services.length}`,
+          complete: Boolean(provider.services.length),
+        },
+        {
+          label: "Horarios actualizados",
+          value: data.source === "firebase" ? "Firebase" : "Demo",
+          complete: true,
+        },
+        {
+          label: "Métodos de pago",
+          value: data.bookings.some(
+            (booking) => booking.paymentStatus === "paid"
+          )
+            ? "Activos"
+            : "Pendiente",
+          complete: data.bookings.some(
+            (booking) => booking.paymentStatus === "paid"
+          ),
+        },
+        {
+          label: "Política de cancelación",
+          value: provider.verified ? "Lista" : "Falta",
+          complete: provider.verified,
+        },
+      ]
+    : fallbackProfileHealth
+  const services = provider
+    ? (provider.services.length
+        ? provider.services
+        : fallbackServices.map((service) => service.name)
+      )
+        .slice(0, 8)
+        .map((name) => {
+          const relatedBookings = providerBookings.filter((booking) =>
+            booking.service.toLowerCase().includes(name.toLowerCase())
+          )
+          return {
+            name,
+            revenue: `$${relatedBookings.reduce(
+              (sum, booking) => sum + booking.total,
+              0
+            )}`,
+            bookings: `${relatedBookings.length} reservas`,
+            trend: relatedBookings.length ? "Activo" : "Nuevo",
+          }
+        })
+    : fallbackServices
+  const activity = provider
+    ? [
+        `${data.providers.length} proveedores normalizados`,
+        `${data.bookings.length} reservas disponibles`,
+        `${
+          data.source === "firebase"
+            ? "Datos Firebase activos"
+            : "Mock local activo"
+        }`,
+      ]
+    : fallbackActivity
+
   return (
     <PrototypeShell active="/provider">
       <section className="overflow-hidden rounded-2xl border border-primary/15 bg-[linear-gradient(135deg,#fafdff_0%,#edf6ff_52%,#ffffff_100%)] shadow-[0_24px_70px_rgba(11,27,47,0.08)]">
@@ -194,7 +341,7 @@ export default function ProviderDashboardPage() {
             </div>
             <div className="grid gap-2 sm:flex sm:flex-wrap">
               <Link
-                href="/providers/maria-nails"
+                href={providerProfileHref}
                 className={cn(
                   buttonVariants({ size: "lg" }),
                   "w-full sm:w-auto"
@@ -375,7 +522,7 @@ export default function ProviderDashboardPage() {
                 min.
               </p>
               <Link
-                href="/providers/maria-nails"
+                href={providerProfileHref}
                 className={cn(
                   buttonVariants({ variant: "ghost", size: "sm" }),
                   "w-full sm:w-auto"

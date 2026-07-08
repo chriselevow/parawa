@@ -18,7 +18,8 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { buttonVariants } from "@/components/ui/button"
-import { bookings, statusLabel } from "@/lib/mock-data"
+import { statusLabel } from "@/lib/mock-data"
+import { getBookings } from "@/lib/parawa-data"
 import { cn } from "@/lib/utils"
 
 function statusVariant(status: string) {
@@ -28,7 +29,8 @@ function statusVariant(status: string) {
   return "destructive"
 }
 
-export default function BookingsPage() {
+export default async function BookingsPage() {
+  const bookings = await getBookings()
   const upcomingCount = bookings.filter(
     (booking) => booking.status === "accepted" || booking.status === "pending"
   ).length

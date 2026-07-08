@@ -19,10 +19,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { categories, providers } from "@/lib/mock-data"
+import { getCategories, getProviders } from "@/lib/parawa-data"
 import { cn } from "@/lib/utils"
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const [categories, providers] = await Promise.all([
+    getCategories(),
+    getProviders(),
+  ])
+
   return (
     <LandingShell>
       <section className="border-b bg-linear-to-b from-primary/5 to-background">

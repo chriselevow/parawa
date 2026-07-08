@@ -25,11 +25,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { adminStats, recentAdminBookings } from "@/lib/admin-mock-data"
 import { buttonVariants } from "@/components/ui/button"
+import { getAdminData } from "@/lib/parawa-data"
 import { cn } from "@/lib/utils"
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  const { adminStats, recentAdminBookings } = await getAdminData()
+
   return (
     <AdminShell
       active="/admin"

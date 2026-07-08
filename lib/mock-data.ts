@@ -19,6 +19,7 @@ export type Provider = {
   verified: boolean
   bio: string
   services: string[]
+  imageUrl?: string
 }
 
 export type Booking = {

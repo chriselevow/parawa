@@ -9,9 +9,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { pendingVerifications } from "@/lib/admin-mock-data"
+import { getAdminData } from "@/lib/parawa-data"
 
-export default function AdminVerificationsPage() {
+export default async function AdminVerificationsPage() {
+  const { pendingVerifications } = await getAdminData()
+
   return (
     <AdminShell
       active="/admin/verifications"

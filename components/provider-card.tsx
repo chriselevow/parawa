@@ -2,7 +2,7 @@ import Link from "next/link"
 import { MapPinIcon, StarIcon } from "lucide-react"
 
 import type { Provider } from "@/lib/mock-data"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -27,6 +27,9 @@ export function ProviderCard({ provider }: { provider: Provider }) {
       <CardHeader>
         <div className="grid gap-3 min-[420px]:grid-cols-[auto_minmax(0,1fr)]">
           <Avatar className="size-12">
+            {provider.imageUrl ? (
+              <AvatarImage src={provider.imageUrl} alt="" />
+            ) : null}
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">

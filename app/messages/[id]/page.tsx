@@ -10,9 +10,9 @@ import { buttonVariants } from "@/components/ui/button"
 import {
   getBooking,
   getBookingForProvider,
+  getMessageThreads,
   getProvider,
-  messageThreads,
-} from "@/lib/mock-data"
+} from "@/lib/parawa-data"
 import { cn } from "@/lib/utils"
 
 export default async function MessageThreadPage({
@@ -21,15 +21,16 @@ export default async function MessageThreadPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
+  const messageThreads = await getMessageThreads()
   const thread = messageThreads.find((t) => t.id === id)
-  const provider = getProvider(id)
+  const provider = await getProvider(id)
   if (!thread && !provider) notFound()
 
   const name = thread?.providerName ?? provider?.name ?? "Chat"
   const booking = thread?.bookingId
-    ? getBooking(thread.bookingId)
+    ? await getBooking(thread.bookingId)
     : provider
-      ? getBookingForProvider(provider.id)
+      ? await getBookingForProvider(provider.id)
       : undefined
 
   const messages: DemoMessage[] = [

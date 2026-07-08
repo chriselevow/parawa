@@ -26,9 +26,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { recentAdminBookings } from "@/lib/admin-mock-data"
+import { getAdminData } from "@/lib/parawa-data"
 
-export default function AdminBookingsPage() {
+export default async function AdminBookingsPage() {
+  const { recentAdminBookings } = await getAdminData()
+
   return (
     <AdminShell
       active="/admin/bookings"

@@ -23,7 +23,8 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { getBooking, statusLabel } from "@/lib/mock-data"
+import { statusLabel } from "@/lib/mock-data"
+import { getBooking } from "@/lib/parawa-data"
 import { cn } from "@/lib/utils"
 
 function statusVariant(status: string) {
@@ -46,7 +47,7 @@ export default async function BookingDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const booking = getBooking(id)
+  const booking = await getBooking(id)
   if (!booking) notFound()
 
   return (

@@ -2,6 +2,7 @@ import Link from "next/link"
 import {
   CalendarIcon,
   LayoutDashboardIcon,
+  type LucideIcon,
   ShieldCheckIcon,
   UsersIcon,
   WrenchIcon,
@@ -11,10 +12,15 @@ import { BrandMark } from "@/components/brand-mark"
 import { SignOutButton } from "@/components/role-session-actions"
 import { buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { adminStats } from "@/lib/admin-mock-data"
+import { getAdminData } from "@/lib/parawa-data"
 import { cn } from "@/lib/utils"
 
-const nav = [
+const baseNav: Array<{
+  href: string
+  label: string
+  icon: LucideIcon
+  badge?: number
+}> = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboardIcon },
   { href: "/admin/providers", label: "Proveedores", icon: WrenchIcon },
   { href: "/admin/bookings", label: "Reservas", icon: CalendarIcon },
@@ -23,11 +29,10 @@ const nav = [
     href: "/admin/verifications",
     label: "Verificaciones",
     icon: ShieldCheckIcon,
-    badge: adminStats.pendingVerifications,
   },
 ]
 
-export function AdminShell({
+export async function AdminShell({
   children,
   active,
   title,
@@ -38,6 +43,13 @@ export function AdminShell({
   title: string
   description?: string
 }) {
+  const { adminStats } = await getAdminData()
+  const nav = baseNav.map((item) =>
+    item.href === "/admin/verifications"
+      ? { ...item, badge: adminStats.pendingVerifications }
+      : item
+  )
+
   return (
     <div className="flex min-h-svh bg-background">
       <aside className="hidden w-64 shrink-0 flex-col border-r bg-card/80 shadow-sm shadow-primary/5 md:flex">
