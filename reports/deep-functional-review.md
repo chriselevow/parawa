@@ -62,6 +62,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 17. Client messages hid booking-derived threads behind an internal cap.
     - Fix: Removed the derived-thread cap and added query-param search, unread/status filters, reset, pagination, and filtered empty states on `/messages`.
 
+18. Provider dashboard request and service sections still had hidden caps.
+    - Fix: Added query-param search, pending/confirmed filters, reset, pagination, and filtered empty states for active provider requests; removed the fixed agenda/service caps and placed long lists in bounded scroll regions with explicit counts.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -82,7 +85,7 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
    - Needed: decide whether to add `threads`/`messages` collections or reuse an existing source not yet identified.
 
 5. Provider dashboard uses read-derived metrics but not operational writes.
-   - Current behavior: when Firebase env is configured, dashboard metrics come from normalized bookings/providers; otherwise it falls back to demo data.
+   - Current behavior: when Firebase env is configured, dashboard metrics come from normalized bookings/providers; active requests support client-side search, filters, and pagination; service and agenda lists render without hidden caps.
    - Needed: accept/reject booking writes, availability edits, and provider profile updates.
 
 6. Storage assets are only partially rendered.
@@ -104,6 +107,10 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 10. Client message controls are still client-side over derived booking threads.
     - Current behavior: `/messages` filters and paginates after the read-only adapter derives conversations from bookings.
     - Needed: authenticated Firestore queries over real thread/message records once the messaging schema exists.
+
+11. Provider request controls are still client-side over normalized reads.
+    - Current behavior: `/provider` filters and paginates after the read-only adapter normalizes the selected demo provider's active reservations.
+    - Needed: authenticated Firestore queries by provider, status, and date once Firebase Auth and provider write flows are connected.
 
 ## Responsive/Data-Fit Checks
 
@@ -130,6 +137,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 - Latest client message-control smoke check found search/filter/pagination
   controls and `0` page-level horizontal overflow at `390x844` and `1280x900`
   on filtered, paginated, and no-result `/messages` URLs.
+- Latest provider request-control smoke check found search/filter/page-clamp
+  controls and `0` page-level horizontal overflow at `390x844` and `1280x900`
+  on filtered, page-clamped, and no-result `/provider` URLs.
 
 ## Recommended Next Step
 

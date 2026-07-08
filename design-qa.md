@@ -56,6 +56,12 @@
 - Added URL-backed client message controls on `/messages`: unread/status
   filter, search, clear, pagination, and filtered empty states now sit in front
   of all booking-derived threads instead of a hidden internal cap.
+- Added URL-backed provider request controls on `/provider`: active requests
+  now support search, pending/confirmed filters, clear, pagination, and
+  filter-aware empty states instead of silently showing only the first six.
+- Removed hidden provider dashboard caps from agenda and service performance:
+  active agenda rows and provider services now render in bounded scroll regions
+  with explicit counts.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -83,6 +89,10 @@
 - URL-backed client message controls passed at `390x844` and `1280x900` for
   `/messages?filter=unread&page=1`, `/messages?page=2`, and
   `/messages?filter=completed&q=zzzz-no-thread&page=1`, all with `0`
+  page-level horizontal overflow.
+- URL-backed provider request controls passed at `390x844` and `1280x900` for
+  `/provider?filter=pending&page=1`, page-clamped `/provider?page=2`, and
+  `/provider?filter=accepted&q=zzzz-no-request&page=1`, all with `0`
   page-level horizontal overflow.
 
 ## Final Result
