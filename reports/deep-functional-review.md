@@ -77,6 +77,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 22. Booking dialog service selection rendered every provider service as a select option.
     - Fix: Replaced the full service select with a bounded searchable picker, pagination, selected-state controls, filtered empty state, and mobile-safe dialog scrolling.
 
+23. Chat thread detail rendered the full message array at once.
+    - Fix: Added a bounded latest-message window, load-earlier control, visible-count copy, mobile-safe quick-reply rail, and richer thread seed data so real Firebase message histories can fit the same surface.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -120,19 +123,23 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
     - Current behavior: `/messages` filters and paginates after the read-only adapter derives conversations from bookings.
     - Needed: authenticated Firestore queries over real thread/message records once the messaging schema exists.
 
-11. Provider request controls are still client-side over normalized reads.
+11. Chat thread messages are still local demo messages.
+    - Current behavior: `/messages/[id]` can now fit longer message histories with a bounded latest-message window and load-earlier control, but it does not read or write a Firebase messages collection.
+    - Needed: real message collection reads, send-message writes, ordering, unread updates, and authenticated participant checks once the messaging schema exists.
+
+12. Provider request controls are still client-side over normalized reads.
     - Current behavior: `/provider` filters and paginates after the read-only adapter normalizes the selected demo provider's active reservations.
     - Needed: authenticated Firestore queries by provider, status, and date once Firebase Auth and provider write flows are connected.
 
-12. Discover controls are still client-side over normalized provider reads.
+13. Discover controls are still client-side over normalized provider reads.
     - Current behavior: `/discover` filters, sorts, and paginates after the read-only adapter normalizes all provider records.
     - Needed: Firestore-backed provider search/category/sort pagination once Firebase Auth, indexes, and production query rules are in place.
 
-13. Provider service controls are still client-side over normalized reads.
+14. Provider service controls are still client-side over normalized reads.
     - Current behavior: `/providers/[id]` filters and paginates after the read-only adapter normalizes all service names for that provider.
     - Needed: provider-service subqueries or indexed service pagination once Firestore query rules and production indexes are in place.
 
-14. Booking dialog still creates only a local demo reservation.
+15. Booking dialog still creates only a local demo reservation.
     - Current behavior: service selection now fits Firebase-sized provider catalogs, but confirmation does not persist a booking.
     - Needed: create Firestore booking writes tied to authenticated client/provider identities.
 
@@ -182,6 +189,10 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
   no-result service search, confirmation CTA, mobile-safe dialog scrolling, and
   `0` page-level horizontal overflow. The only offscreen nodes detected were
   Base UI focus sentinels, not visible content.
+- Latest chat-thread smoke check on `/messages/[id]` found the bounded
+  latest-message window, load-earlier control, visible-count copy, quick
+  replies, composer, send-and-demo-reply flow, cleared input after send, and
+  `0` page-level horizontal overflow at mobile and desktop viewport overrides.
 
 ## Recommended Next Step
 

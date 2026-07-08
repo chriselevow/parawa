@@ -114,7 +114,11 @@ export function SignOutButton({
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    setIsVisible(getCurrentRole() === role)
+    const frame = requestAnimationFrame(() => {
+      setIsVisible(getCurrentRole() === role)
+    })
+
+    return () => cancelAnimationFrame(frame)
   }, [role])
 
   if (!isVisible) return null

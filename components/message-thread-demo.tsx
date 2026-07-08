@@ -4,6 +4,7 @@ import { FormEvent, useRef, useState } from "react"
 import Link from "next/link"
 import {
   CalendarDaysIcon,
+  ChevronUpIcon,
   CreditCardIcon,
   MapPinIcon,
   PaperclipIcon,
@@ -26,6 +27,8 @@ export type DemoMessage = {
   status?: "sent" | "read"
 }
 
+const MESSAGE_THREAD_PAGE_SIZE = 8
+
 export function MessageThreadDemo({
   name,
   initialMessages,
@@ -38,6 +41,9 @@ export function MessageThreadDemo({
   providerHref?: string
 }) {
   const [messages, setMessages] = useState(initialMessages)
+  const [visibleMessageCount, setVisibleMessageCount] = useState(() =>
+    Math.min(MESSAGE_THREAD_PAGE_SIZE, initialMessages.length)
+  )
   const [draft, setDraft] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
   const initials = name
@@ -45,21 +51,26 @@ export function MessageThreadDemo({
     .map((part) => part[0])
     .join("")
     .slice(0, 2)
+  const visibleCount = Math.min(visibleMessageCount, messages.length)
+  const hiddenMessageCount = Math.max(messages.length - visibleCount, 0)
+  const visibleMessages = messages.slice(hiddenMessageCount)
 
   function sendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const text = draft.trim()
     if (!text) return
 
-    setMessages((current) => [
-      ...current,
+    const nextMessages: DemoMessage[] = [
       { from: "me", text, time: "Ahora", status: "sent" },
       {
         from: "them",
         text: "Recibido. Te confirmo disponibilidad en unos minutos.",
         time: "Ahora",
       },
-    ])
+    ]
+
+    setMessages((current) => [...current, ...nextMessages])
+    setVisibleMessageCount((count) => count + nextMessages.length)
     setDraft("")
     requestAnimationFrame(() => inputRef.current?.focus())
   }
@@ -78,7 +89,7 @@ export function MessageThreadDemo({
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground">
-            Demo local · mensajes de esta sesión
+            {messages.length} mensajes · demo local de esta sesión
           </p>
         </div>
         <div className="grid gap-2 sm:flex sm:flex-wrap sm:justify-end">
@@ -147,9 +158,34 @@ export function MessageThreadDemo({
           <div className="self-center rounded-full border bg-card px-3 py-1 text-xs text-muted-foreground">
             Hoy
           </div>
-          {messages.map((message, index) => (
+          {hiddenMessageCount > 0 ? (
+            <div className="self-center rounded-2xl border bg-card/95 p-2 shadow-sm">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-auto rounded-xl px-3 py-2 text-xs"
+                onClick={() =>
+                  setVisibleMessageCount((count) =>
+                    Math.min(count + MESSAGE_THREAD_PAGE_SIZE, messages.length)
+                  )
+                }
+              >
+                <ChevronUpIcon data-icon="inline-start" />
+                Cargar {Math.min(
+                  hiddenMessageCount,
+                  MESSAGE_THREAD_PAGE_SIZE
+                )}{" "}
+                anteriores
+              </Button>
+              <p className="px-3 pb-1 text-center text-[0.68rem] text-muted-foreground">
+                {visibleCount} de {messages.length} visibles
+              </p>
+            </div>
+          ) : null}
+          {visibleMessages.map((message, index) => (
             <div
-              key={`${message.from}-${index}-${message.text}`}
+              key={`${message.from}-${hiddenMessageCount + index}-${message.text}`}
               className={cn(
                 "break-anywhere max-w-[92%] rounded-2xl px-3 py-2 text-sm shadow-sm sm:max-w-[85%]",
                 message.from === "me"
@@ -179,7 +215,7 @@ export function MessageThreadDemo({
       </ScrollArea>
 
       <div className="border-t bg-card p-3">
-        <div className="mb-2 flex flex-wrap gap-2">
+        <div className="mb-2 flex max-w-full gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
           {[
             "Confirmo asistencia",
             "¿Puedes enviarme la dirección?",

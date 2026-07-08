@@ -77,6 +77,10 @@
 - Replaced the booking dialog's full service select with a bounded searchable
   service picker, pagination, selected-state controls, and filtered empty state;
   shared dialog content now has mobile max-height and vertical scrolling.
+- Added Firebase-sized chat-thread controls on `/messages/[id]`: the thread now
+  shows a bounded latest-message window with a load-earlier control,
+  visible-count copy, a mobile-safe quick-reply rail, and a composer that keeps
+  the local send/reply demo behavior intact.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -129,6 +133,12 @@
   opening `Reservar` showed the bounded service picker, selected state,
   pagination, confirmation CTA, and no-result search state; the dialog fit the
   viewport with vertical scrolling and `0` page-level horizontal overflow.
+- Chat thread controls passed on `/messages/[id]`: mobile viewport override
+  showed `Cargar 1 anteriores`, `8 de 9 visibles`, quick replies, composer, and
+  `0` page-level horizontal overflow; clicking load earlier revealed the hidden
+  system message, sending a test message added the local reply and cleared the
+  input with `0` overflow; desktop viewport override also showed the bounded
+  controls with `0` overflow.
 
 ## Final Result
 

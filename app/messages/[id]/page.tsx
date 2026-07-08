@@ -7,6 +7,7 @@ import {
 } from "@/components/message-thread-demo"
 import { PrototypeShell } from "@/components/prototype-shell"
 import { buttonVariants } from "@/components/ui/button"
+import { statusLabel } from "@/lib/mock-data"
 import {
   getBooking,
   getBookingForClient,
@@ -42,6 +43,12 @@ export default async function MessageThreadPage({
         ? `Reserva ${booking.code} vinculada a este chat.`
         : "Chat iniciado desde el perfil del proveedor.",
     },
+    {
+      from: "system",
+      text: booking
+        ? `${statusLabel(booking.status)} · ${booking.shortDate} · ${booking.time}.`
+        : "Los mensajes reales se conectarán cuando exista el modelo de conversación.",
+    },
     { from: "them", text: "Hola, ¿qué servicio necesitas?", time: "2:14 PM" },
     {
       from: "me",
@@ -49,6 +56,36 @@ export default async function MessageThreadPage({
         ? `Hola, escribo por la reserva de ${booking.service}.`
         : "Hola, quisiera consultar disponibilidad.",
       time: "2:16 PM",
+      status: "read",
+    },
+    {
+      from: "them",
+      text: booking
+        ? "Gracias por escribir. Tengo la solicitud abierta con los detalles de la reserva."
+        : "Con gusto. Cuéntame qué día y horario te funciona.",
+      time: "2:17 PM",
+    },
+    {
+      from: "me",
+      text: booking
+        ? `La dirección es ${booking.address}.`
+        : "Me gustaría coordinar esta semana si tienes espacio.",
+      time: "2:17 PM",
+      status: "read",
+    },
+    {
+      from: "them",
+      text: booking
+        ? "Perfecto, revisaré la ruta y te aviso si necesito algún detalle adicional."
+        : "Tengo disponibilidad mañana en la tarde y el viernes en la mañana.",
+      time: "2:18 PM",
+    },
+    {
+      from: "me",
+      text: booking
+        ? "Gracias. Quedo pendiente."
+        : "Mañana en la tarde funciona.",
+      time: "2:18 PM",
       status: "read",
     },
     {
@@ -71,6 +108,7 @@ export default async function MessageThreadPage({
       </Link>
 
       <MessageThreadDemo
+        key={id}
         name={name}
         initialMessages={messages}
         booking={booking}
