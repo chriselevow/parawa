@@ -39,13 +39,18 @@ export default function LandingPage() {
               chatea, reserva y paga sin efectivo — todo desde una sola app.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link href="/discover" className={cn(buttonVariants({ size: "lg" }))}>
+              <Link
+                href="/discover"
+                className={cn(buttonVariants({ size: "lg" }))}
+              >
                 Buscar servicios
                 <ArrowRightIcon data-icon="inline-end" />
               </Link>
               <Link
-                href="/provider"
-                className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
+                href="/login?role=provider&next=%2Fprovider"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "lg" })
+                )}
               >
                 Ofrecer mis servicios
               </Link>
@@ -66,7 +71,10 @@ export default function LandingPage() {
             <CardContent className="flex flex-col gap-4">
               {[
                 { icon: SearchIcon, text: "Explora por categoría o zona" },
-                { icon: MessageCircleIcon, text: "Chatea y personaliza tu pedido" },
+                {
+                  icon: MessageCircleIcon,
+                  text: "Chatea y personaliza tu pedido",
+                },
                 { icon: CreditCardIcon, text: "Paga con tarjeta al confirmar" },
               ].map((step, i) => (
                 <div key={step.text} className="flex items-center gap-3">
@@ -77,7 +85,10 @@ export default function LandingPage() {
                   <span className="text-sm">{step.text}</span>
                 </div>
               ))}
-              <Link href="/discover" className={cn(buttonVariants(), "mt-2 w-full")}>
+              <Link
+                href="/discover"
+                className={cn(buttonVariants(), "mt-2 w-full")}
+              >
                 Probar prototipo
               </Link>
             </CardContent>
@@ -110,8 +121,8 @@ export default function LandingPage() {
               Cómo funciona Parawa
             </h2>
             <p className="mt-2 text-muted-foreground">
-              Dos experiencias en una plataforma: quien necesita un servicio y quien
-              lo ofrece.
+              Dos experiencias en una plataforma: quien necesita un servicio y
+              quien lo ofrece.
             </p>
           </div>
           <div className="grid gap-6 md:grid-cols-2">
@@ -150,7 +161,7 @@ export default function LandingPage() {
                   <li>· Cobros seguros directo en la app</li>
                 </ul>
                 <Link
-                  href="/provider"
+                  href="/login?role=provider&next=%2Fprovider"
                   className={cn(buttonVariants({ variant: "outline" }), "mt-4")}
                 >
                   Panel proveedor
@@ -162,29 +173,40 @@ export default function LandingPage() {
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-4 py-16">
-        <h2 className="font-heading text-2xl font-semibold">Categorías populares</h2>
-        <p className="mt-1 text-muted-foreground">Los servicios más buscados en Panamá</p>
+        <h2 className="font-heading text-2xl font-semibold">
+          Categorías populares
+        </h2>
+        <p className="mt-1 text-muted-foreground">
+          Los servicios más buscados en Panamá
+        </p>
         <div className="mt-6 flex flex-wrap gap-2">
-          {categories.filter((c) => c !== "Todos").map((cat) => (
-            <Link key={cat} href="/discover">
-              <Badge
-                variant="outline"
-                className="border-primary/20 bg-primary/5 px-4 py-2 text-sm text-primary hover:bg-primary/10"
-              >
-                {cat}
-              </Badge>
-            </Link>
-          ))}
+          {categories
+            .filter((c) => c !== "Todos")
+            .map((cat) => (
+              <Link key={cat} href="/discover">
+                <Badge
+                  variant="outline"
+                  className="border-primary/20 bg-primary/5 px-4 py-2 text-sm text-primary hover:bg-primary/10"
+                >
+                  {cat}
+                </Badge>
+              </Link>
+            ))}
         </div>
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-4 pb-16">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
-            <h2 className="font-heading text-2xl font-semibold">Proveedores destacados</h2>
+            <h2 className="font-heading text-2xl font-semibold">
+              Proveedores destacados
+            </h2>
             <p className="text-muted-foreground">Confianza de tu comunidad</p>
           </div>
-          <Link href="/discover" className={cn(buttonVariants({ variant: "ghost" }))}>
+          <Link
+            href="/discover"
+            className={cn(buttonVariants({ variant: "ghost" }))}
+          >
             Ver todos
           </Link>
         </div>
@@ -215,10 +237,10 @@ export default function LandingPage() {
               Empezar como cliente
             </Link>
             <Link
-              href="/login"
+              href="/login?role=client&next=%2Fdiscover"
               className={cn(
                 buttonVariants({ variant: "outline", size: "lg" }),
-                "border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
+                "border-background bg-background text-primary hover:bg-background/90 hover:text-primary"
               )}
             >
               Crear cuenta

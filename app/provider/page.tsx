@@ -1,19 +1,80 @@
 import Link from "next/link"
-import { CalendarIcon, DollarSignIcon, InboxIcon } from "lucide-react"
+import {
+  ActivityIcon,
+  ArrowUpRightIcon,
+  BadgeCheckIcon,
+  CalendarDaysIcon,
+  CheckCircle2Icon,
+  Clock3Icon,
+  CreditCardIcon,
+  EyeIcon,
+  InboxIcon,
+  MapPinIcon,
+  MessageCircleIcon,
+  ShieldCheckIcon,
+  SparklesIcon,
+  StarIcon,
+  TrendingUpIcon,
+  UserRoundCheckIcon,
+  WalletIcon,
+} from "lucide-react"
 
 import { PrototypeShell } from "@/components/prototype-shell"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+
+const providerProfile = {
+  name: "María González",
+  business: "Maria Nails Studio",
+  category: "Uñas y manicure",
+  area: "San Francisco, Ciudad de Panamá",
+  status: "Abierta hoy",
+  response: "4 min",
+  rating: "4.9",
+  reviews: "128 reseñas",
+  profileScore: 92,
+}
+
+const stats = [
+  {
+    icon: InboxIcon,
+    label: "Solicitudes nuevas",
+    value: "4",
+    detail: "+2 desde ayer",
+    tone: "text-primary",
+  },
+  {
+    icon: CalendarDaysIcon,
+    label: "Citas próximas",
+    value: "8",
+    detail: "3 hoy · 5 esta semana",
+    tone: "text-[#0f8f7a]",
+  },
+  {
+    icon: WalletIcon,
+    label: "Ingresos semana",
+    value: "$420",
+    detail: "+18% vs. semana pasada",
+    tone: "text-[#a06400]",
+  },
+  {
+    icon: StarIcon,
+    label: "Calidad",
+    value: "4.9",
+    detail: "98% confirmadas",
+    tone: "text-[#c48100]",
+  },
+]
 
 const requests = [
   {
@@ -21,88 +82,446 @@ const requests = [
     client: "Pedro L.",
     service: "Gel nails",
     when: "Vie 23 May · 3:00 PM",
+    amount: "$35",
+    distance: "1.8 km",
     status: "Nueva",
+    note: "Prefiere diseño natural y horario puntual.",
   },
   {
     id: "r2",
     client: "Lucía R.",
     service: "Manicure clásico",
     when: "Sáb 24 May · 11:00 AM",
+    amount: "$25",
+    distance: "3.2 km",
     status: "Nueva",
+    note: "Cliente recurrente, pidió confirmación por chat.",
   },
+  {
+    id: "r3",
+    client: "Andrea P.",
+    service: "Pedicure spa",
+    when: "Sáb 24 May · 4:30 PM",
+    amount: "$45",
+    distance: "2.4 km",
+    status: "Pendiente",
+    note: "Quiere agregar retiro de gel si hay tiempo.",
+  },
+]
+
+const agenda = [
+  {
+    time: "10:00",
+    client: "Nathalia M.",
+    service: "Manicure clásico",
+    status: "Confirmada",
+  },
+  {
+    time: "13:30",
+    client: "Camila S.",
+    service: "Gel nails",
+    status: "Por llegar",
+  },
+  {
+    time: "17:00",
+    client: "Valeria G.",
+    service: "Pedicure spa",
+    status: "Confirmada",
+  },
+]
+
+const profileHealth = [
+  { label: "Fotos de trabajos", value: "12/15", complete: true },
+  { label: "Horarios actualizados", value: "Hoy", complete: true },
+  { label: "Métodos de pago", value: "2 activos", complete: true },
+  { label: "Política de cancelación", value: "Falta", complete: false },
+]
+
+const services = [
+  { name: "Gel nails", revenue: "$210", bookings: "6 reservas", trend: "+24%" },
+  {
+    name: "Manicure clásico",
+    revenue: "$125",
+    bookings: "5 reservas",
+    trend: "+8%",
+  },
+  {
+    name: "Pedicure spa",
+    revenue: "$85",
+    bookings: "2 reservas",
+    trend: "Nuevo",
+  },
+]
+
+const activity = [
+  "Lucía R. abrió el chat hace 8 min",
+  "Tu perfil recibió 43 visitas esta semana",
+  "Pago de Pedro L. listo al confirmar",
 ]
 
 export default function ProviderDashboardPage() {
   return (
     <PrototypeShell active="/provider">
-      <div className="flex flex-col gap-2">
-        <h1 className="font-heading text-2xl font-semibold">Panel proveedor</h1>
-        <p className="text-sm text-muted-foreground">
-          Vista de María González · prototipo clickeable
-        </p>
-      </div>
+      <section className="overflow-hidden rounded-2xl border border-primary/15 bg-[linear-gradient(135deg,#fafdff_0%,#edf6ff_52%,#ffffff_100%)] shadow-[0_24px_70px_rgba(11,27,47,0.08)]">
+        <div className="grid gap-6 p-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:p-6">
+          <div className="flex flex-col justify-between gap-6">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge
+                  className="bg-[#e7f7f3] text-[#087466]"
+                  variant="outline"
+                >
+                  <span className="size-1.5 rounded-full bg-[#12a182]" />
+                  {providerProfile.status}
+                </Badge>
+                <Badge variant="outline">
+                  <ShieldCheckIcon data-icon="inline-start" />
+                  Perfil verificado
+                </Badge>
+              </div>
+              <div className="max-w-2xl">
+                <p className="text-sm font-semibold text-primary">
+                  Portal proveedor
+                </p>
+                <h1 className="mt-1 font-heading text-3xl font-semibold tracking-normal text-foreground">
+                  {providerProfile.business}
+                </h1>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {providerProfile.name} · {providerProfile.category} ·{" "}
+                  {providerProfile.area}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/providers/maria-nails"
+                className={cn(buttonVariants({ size: "lg" }))}
+              >
+                <EyeIcon data-icon="inline-start" />
+                Ver perfil público
+              </Link>
+              <Button size="lg" variant="outline">
+                <CalendarDaysIcon data-icon="inline-start" />
+                Editar disponibilidad
+              </Button>
+              <Button size="lg" variant="outline">
+                <MessageCircleIcon data-icon="inline-start" />
+                Responder chats
+              </Button>
+            </div>
+          </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        {[
-          { icon: InboxIcon, label: "Solicitudes", value: "2 nuevas" },
-          { icon: CalendarIcon, label: "Esta semana", value: "5 citas" },
-          { icon: DollarSignIcon, label: "Ingresos", value: "$280" },
-        ].map((stat) => (
+          <div className="grid gap-3 rounded-2xl border border-primary/10 bg-white/70 p-4 shadow-sm shadow-primary/5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Estado operativo</p>
+                <p className="text-xs text-muted-foreground">
+                  Listo para recibir reservas
+                </p>
+              </div>
+              <ActivityIcon className="text-primary" />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                ["Respuesta", providerProfile.response],
+                ["Rating", providerProfile.rating],
+                ["Perfil", `${providerProfile.profileScore}%`],
+              ].map(([label, value]) => (
+                <div
+                  key={label}
+                  className="rounded-xl border border-primary/10 bg-background/80 p-3"
+                >
+                  <p className="text-[0.7rem] font-medium text-muted-foreground">
+                    {label}
+                  </p>
+                  <p className="mt-1 font-heading text-lg font-semibold">
+                    {value}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-secondary">
+              <div
+                className="h-full rounded-full bg-primary"
+                style={{ width: `${providerProfile.profileScore}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {providerProfile.reviews} · 3 mejoras pequeñas pendientes
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {stats.map((stat) => (
           <Card key={stat.label} size="sm">
-            <CardHeader>
-              <stat.icon className="text-primary" />
-              <CardDescription>{stat.label}</CardDescription>
-              <CardTitle>{stat.value}</CardTitle>
+            <CardHeader className="gap-3">
+              <div className="flex items-center justify-between">
+                <div className="rounded-xl border border-primary/10 bg-secondary/50 p-2">
+                  <stat.icon className={cn("size-4", stat.tone)} />
+                </div>
+                <Badge variant="outline">
+                  <TrendingUpIcon data-icon="inline-start" />
+                  Hoy
+                </Badge>
+              </div>
+              <div>
+                <CardDescription>{stat.label}</CardDescription>
+                <CardTitle className="mt-1 text-2xl font-semibold">
+                  {stat.value}
+                </CardTitle>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {stat.detail}
+                </p>
+              </div>
             </CardHeader>
           </Card>
         ))}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Solicitudes entrantes</CardTitle>
-          <CardDescription>Acepta o rechaza desde aquí (demo)</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          {requests.map((req) => (
-            <div
-              key={req.id}
-              className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
-            >
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="flex min-w-0 flex-col gap-6">
+          <Card id="solicitudes">
+            <CardHeader>
               <div>
-                <p className="font-medium">{req.client}</p>
-                <p className="text-sm text-muted-foreground">
-                  {req.service} · {req.when}
-                </p>
+                <CardTitle>Solicitudes entrantes</CardTitle>
+                <CardDescription>
+                  Prioriza reservas nuevas, confirma pagos y abre chat si falta
+                  contexto.
+                </CardDescription>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge>{req.status}</Badge>
-                <Button size="sm">Aceptar</Button>
+              <CardAction>
                 <Button size="sm" variant="outline">
-                  Rechazar
+                  <SparklesIcon data-icon="inline-start" />
+                  Autoordenar
                 </Button>
-              </div>
-            </div>
-          ))}
-        </CardContent>
-        <CardFooter>
-          <Link href="/discover" className={cn(buttonVariants({ variant: "ghost" }))}>
-            Ver mi perfil público →
-          </Link>
-        </CardFooter>
-      </Card>
+              </CardAction>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              {requests.map((req) => (
+                <div
+                  key={req.id}
+                  className="grid gap-4 rounded-xl border border-border/75 bg-background/80 p-4 shadow-sm shadow-primary/5"
+                >
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-semibold">{req.client}</p>
+                      <Badge
+                        className={cn(
+                          req.status === "Nueva"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-[#fff3d7] text-[#7a5200]"
+                        )}
+                      >
+                        {req.status}
+                      </Badge>
+                      <span className="text-sm font-semibold text-primary">
+                        {req.amount}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {req.service} · {req.when}
+                    </p>
+                    <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                      <span className="inline-flex items-center gap-1">
+                        <MapPinIcon className="size-3.5" />
+                        {req.distance}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <CreditCardIcon className="size-3.5" />
+                        Pago al confirmar
+                      </span>
+                    </div>
+                    <p className="mt-3 rounded-lg bg-muted/55 px-3 py-2 text-sm text-muted-foreground">
+                      {req.note}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 border-t border-border/70 pt-3 sm:justify-end">
+                    <Button size="sm" className="h-8 rounded-lg px-3 shadow-sm">
+                      <CheckCircle2Icon data-icon="inline-start" />
+                      Aceptar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 rounded-lg px-3"
+                    >
+                      <MessageCircleIcon data-icon="inline-start" />
+                      Chat
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 rounded-lg px-2.5 text-muted-foreground"
+                    >
+                      Rechazar
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+            <CardFooter className="justify-between gap-3">
+              <p className="text-xs text-muted-foreground">
+                SLA recomendado: responder solicitudes nuevas en menos de 10
+                min.
+              </p>
+              <Link
+                href="/providers/maria-nails"
+                className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+              >
+                Ver perfil
+                <ArrowUpRightIcon data-icon="inline-end" />
+              </Link>
+            </CardFooter>
+          </Card>
 
-      <Card size="sm">
-        <CardHeader>
-          <CardTitle>Mi perfil</CardTitle>
-          <CardDescription>Gestiona servicios y horarios</CardDescription>
-        </CardHeader>
-        <CardFooter className="flex flex-wrap gap-2">
-          <Button variant="outline">Editar servicios</Button>
-          <Button variant="outline">Horarios</Button>
-          <Button variant="outline">Portafolio</Button>
-        </CardFooter>
-      </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Agenda de hoy</CardTitle>
+              <CardDescription>
+                Una vista rápida para operar el día sin cambiar de pantalla.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-hidden rounded-xl border border-border/75">
+                {agenda.map((slot, index) => (
+                  <div
+                    key={`${slot.time}-${slot.client}`}
+                    className={cn(
+                      "grid gap-3 bg-background p-4 sm:grid-cols-[5rem_minmax(0,1fr)_auto]",
+                      index !== agenda.length - 1 && "border-b"
+                    )}
+                  >
+                    <div className="flex items-center gap-2 font-heading font-semibold text-primary">
+                      <Clock3Icon className="size-4" />
+                      {slot.time}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-medium">{slot.client}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {slot.service}
+                      </p>
+                    </div>
+                    <Badge
+                      className="w-fit bg-[#e7f7f3] text-[#087466]"
+                      variant="outline"
+                    >
+                      {slot.status}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <aside className="flex min-w-0 flex-col gap-6">
+          <Card id="perfil">
+            <CardHeader>
+              <CardTitle>Salud del perfil</CardTitle>
+              <CardDescription>
+                Completa lo que aumenta confianza y conversión.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              {profileHealth.map((item) => (
+                <div
+                  key={item.label}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-background/80 p-3"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div
+                      className={cn(
+                        "flex size-8 items-center justify-center rounded-full",
+                        item.complete
+                          ? "bg-[#e7f7f3] text-[#087466]"
+                          : "bg-[#fff3d7] text-[#7a5200]"
+                      )}
+                    >
+                      {item.complete ? (
+                        <CheckCircle2Icon className="size-4" />
+                      ) : (
+                        <Clock3Icon className="size-4" />
+                      )}
+                    </div>
+                    <p className="truncate text-sm font-medium">{item.label}</p>
+                  </div>
+                  <span className="shrink-0 text-xs font-semibold text-muted-foreground">
+                    {item.value}
+                  </span>
+                </div>
+              ))}
+            </CardContent>
+            <CardFooter className="flex-wrap gap-2">
+              <Button size="sm" variant="outline">
+                Editar servicios
+              </Button>
+              <Button size="sm" variant="outline">
+                Horarios
+              </Button>
+              <Button size="sm" variant="outline">
+                Portafolio
+              </Button>
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Servicios que convierten</CardTitle>
+              <CardDescription>
+                Rendimiento visible como dashboard.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              {services.map((service) => (
+                <div
+                  key={service.name}
+                  className="rounded-xl border border-border/70 bg-background/80 p-3"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-medium">{service.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {service.bookings}
+                      </p>
+                    </div>
+                    <Badge variant="outline">{service.trend}</Badge>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Ingresos</span>
+                    <span className="font-semibold">{service.revenue}</span>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card size="sm">
+            <CardHeader>
+              <CardTitle>Actividad reciente</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              {activity.map((item) => (
+                <div key={item} className="flex gap-3">
+                  <span className="mt-1 size-2 rounded-full bg-primary" />
+                  <p className="text-sm text-muted-foreground">{item}</p>
+                </div>
+              ))}
+            </CardContent>
+            <CardFooter>
+              <Badge variant="outline">
+                <UserRoundCheckIcon data-icon="inline-start" />
+                Operación sana
+              </Badge>
+              <Badge variant="outline">
+                <BadgeCheckIcon data-icon="inline-start" />
+                Verificada
+              </Badge>
+            </CardFooter>
+          </Card>
+        </aside>
+      </div>
     </PrototypeShell>
   )
 }

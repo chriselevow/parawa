@@ -2,6 +2,16 @@ import { AdminShell } from "@/components/admin-shell"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
   Table,
   TableBody,
   TableCell,
@@ -42,9 +52,46 @@ export default function AdminBookingsPage() {
                 <Badge variant="outline">{row.status}</Badge>
               </TableCell>
               <TableCell className="text-right">
-                <Button size="sm" variant="ghost">
-                  Detalle
-                </Button>
+                <Dialog>
+                  <DialogTrigger render={<Button size="sm" variant="ghost" />}>
+                    Detalle
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Reserva {row.id}</DialogTitle>
+                      <DialogDescription>
+                        Resumen operativo de la solicitud.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-3 rounded-xl border bg-muted/30 p-3 text-sm">
+                      <div className="flex justify-between gap-3">
+                        <span className="text-muted-foreground">Cliente</span>
+                        <span className="font-medium">{row.client}</span>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <span className="text-muted-foreground">Proveedor</span>
+                        <span className="font-medium">{row.provider}</span>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <span className="text-muted-foreground">Servicio</span>
+                        <span className="font-medium">{row.service}</span>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <span className="text-muted-foreground">Monto</span>
+                        <span className="font-medium">${row.amount}</span>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <span className="text-muted-foreground">Estado</span>
+                        <Badge variant="outline">{row.status}</Badge>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <DialogClose render={<Button className="sm:flex-1" />}>
+                        Cerrar
+                      </DialogClose>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </TableCell>
             </TableRow>
           ))}

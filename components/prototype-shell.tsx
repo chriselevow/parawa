@@ -1,16 +1,16 @@
-import Link from "next/link"
-
 import { BrandMark } from "@/components/brand-mark"
-import { buttonVariants } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { PrototypeShellNav } from "@/components/prototype-shell-nav"
 
-const links = [
-  { href: "/", label: "Inicio" },
-  { href: "/discover", label: "Explorar" },
+const clientLinks = [
+  { href: "/discover", label: "Servicios" },
   { href: "/bookings", label: "Reservas" },
-  { href: "/provider", label: "Proveedor" },
   { href: "/messages", label: "Mensajes" },
-  { href: "/admin", label: "Admin" },
+]
+
+const providerLinks = [
+  { href: "/provider", label: "Panel" },
+  { href: "/provider#solicitudes", label: "Solicitudes" },
+  { href: "/provider#perfil", label: "Perfil" },
 ]
 
 export function PrototypeShell({
@@ -20,38 +20,35 @@ export function PrototypeShell({
   children: React.ReactNode
   active?: string
 }) {
+  const isProvider = active === "/provider"
+  const links = isProvider ? providerLinks : active ? clientLinks : []
+  const role = isProvider ? "provider" : active ? "client" : null
+  const workspaceLabel = isProvider
+    ? "Portal proveedor"
+    : active
+      ? "Cliente"
+      : null
+
   return (
     <div className="flex min-h-svh flex-col bg-background">
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center justify-between gap-3">
-            <BrandMark href="/" size="sm" />
-            <Link
-              href="/login"
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-            >
-              Entrar
-            </Link>
+      <header className="sticky top-0 z-40 border-b bg-background/90 shadow-sm shadow-primary/5 backdrop-blur supports-backdrop-filter:bg-background/75">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-3 py-2 sm:px-4 sm:py-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <BrandMark href={isProvider ? "/provider" : "/"} size="sm" />
+            {workspaceLabel ? (
+              <span className="rounded-full border border-primary/15 bg-primary/5 px-2.5 py-1 text-xs font-semibold text-primary">
+                {workspaceLabel}
+              </span>
+            ) : null}
           </div>
-          <nav className="flex flex-wrap gap-1">
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  buttonVariants({
-                    variant: active === link.href ? "default" : "ghost",
-                    size: "sm",
-                  })
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+          <PrototypeShellNav
+            links={links}
+            role={role}
+            activeFallback={active}
+          />
         </div>
       </header>
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-6">
+      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6">
         {children}
       </main>
       <footer className="border-t py-4 text-center text-xs text-muted-foreground">

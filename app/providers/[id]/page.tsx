@@ -35,7 +35,13 @@ export default async function ProviderPage({
 
   return (
     <PrototypeShell active="/discover">
-      <Link href="/discover" className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "self-start")}>
+      <Link
+        href="/discover"
+        className={cn(
+          buttonVariants({ variant: "ghost", size: "sm" }),
+          "self-start"
+        )}
+      >
         ← Volver
       </Link>
 
@@ -83,7 +89,10 @@ export default async function ProviderPage({
             <BookServiceDialog provider={provider} />
             <Link
               href={`/messages/${provider.id}`}
-              className={cn(buttonVariants({ variant: "outline" }), "flex-1")}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "lg" }),
+                "min-h-12 flex-1 border-primary/30 bg-primary/5 px-5 text-base font-semibold text-primary hover:bg-primary/10"
+              )}
             >
               <MessageCircleIcon data-icon="inline-start" />
               Mensaje

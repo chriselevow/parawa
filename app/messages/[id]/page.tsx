@@ -1,12 +1,18 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
+import {
+  MessageThreadDemo,
+  type DemoMessage,
+} from "@/components/message-thread-demo"
 import { PrototypeShell } from "@/components/prototype-shell"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { buttonVariants } from "@/components/ui/button"
-import { getProvider, messageThreads } from "@/lib/mock-data"
+import {
+  getBooking,
+  getBookingForProvider,
+  getProvider,
+  messageThreads,
+} from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
 
 export default async function MessageThreadPage({
@@ -20,51 +26,53 @@ export default async function MessageThreadPage({
   if (!thread && !provider) notFound()
 
   const name = thread?.providerName ?? provider?.name ?? "Chat"
+  const booking = thread?.bookingId
+    ? getBooking(thread.bookingId)
+    : provider
+      ? getBookingForProvider(provider.id)
+      : undefined
 
-  const messages = [
-    { from: "them", text: "Hola, ¿qué servicio necesitas?" },
-    { from: "me", text: "Hola, quisiera gel nails para el viernes." },
-    { from: "them", text: thread?.preview ?? "Perfecto, tengo espacio a las 3pm." },
+  const messages: DemoMessage[] = [
+    {
+      from: "system",
+      text: booking
+        ? `Reserva ${booking.code} vinculada a este chat.`
+        : "Chat iniciado desde el perfil del proveedor.",
+    },
+    { from: "them", text: "Hola, ¿qué servicio necesitas?", time: "2:14 PM" },
+    {
+      from: "me",
+      text: booking
+        ? `Hola, escribo por la reserva de ${booking.service}.`
+        : "Hola, quisiera consultar disponibilidad.",
+      time: "2:16 PM",
+      status: "read",
+    },
+    {
+      from: "them",
+      text: thread?.preview ?? "Perfecto, tengo espacio a las 3pm.",
+      time: "2:18 PM",
+    },
   ]
 
   return (
     <PrototypeShell active="/messages">
       <Link
         href="/messages"
-        className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "self-start")}
+        className={cn(
+          buttonVariants({ variant: "ghost", size: "sm" }),
+          "self-start"
+        )}
       >
         ← Mensajes
       </Link>
 
-      <div className="flex min-h-[24rem] flex-col rounded-xl border">
-        <div className="border-b px-4 py-3">
-          <h1 className="font-medium">{name}</h1>
-          <p className="text-xs text-muted-foreground">Prototipo · sin envío real</p>
-        </div>
-
-        <ScrollArea className="flex-1 p-4">
-          <div className="flex flex-col gap-3">
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "max-w-[85%] rounded-lg px-3 py-2 text-sm",
-                  msg.from === "me"
-                    ? "ml-auto bg-primary text-primary-foreground"
-                    : "bg-muted"
-                )}
-              >
-                {msg.text}
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
-
-        <div className="flex gap-2 border-t p-3">
-          <Input placeholder="Escribe un mensaje…" />
-          <Button>Enviar</Button>
-        </div>
-      </div>
+      <MessageThreadDemo
+        name={name}
+        initialMessages={messages}
+        booking={booking}
+        providerHref={provider ? `/providers/${provider.id}` : undefined}
+      />
 
       {provider && (
         <Link

@@ -1,7 +1,6 @@
 import Link from "next/link"
 import {
   CalendarIcon,
-  HomeIcon,
   LayoutDashboardIcon,
   ShieldCheckIcon,
   UsersIcon,
@@ -9,6 +8,7 @@ import {
 } from "lucide-react"
 
 import { BrandMark } from "@/components/brand-mark"
+import { SignOutButton } from "@/components/role-session-actions"
 import { buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { adminStats } from "@/lib/admin-mock-data"
@@ -40,10 +40,12 @@ export function AdminShell({
 }) {
   return (
     <div className="flex min-h-svh bg-background">
-      <aside className="hidden w-56 shrink-0 flex-col border-r bg-muted/20 md:flex">
-        <div className="flex flex-col gap-1 border-b p-4">
-          <BrandMark href="/" size="sm" />
-          <p className="text-xs text-muted-foreground">Panel administración</p>
+      <aside className="hidden w-64 shrink-0 flex-col border-r bg-card/80 shadow-sm shadow-primary/5 md:flex">
+        <div className="flex flex-col gap-2 border-b bg-background/70 p-4">
+          <BrandMark href="/admin" size="sm" />
+          <p className="text-xs text-muted-foreground">
+            Operación, reservas y confianza
+          </p>
         </div>
         <nav className="flex flex-1 flex-col gap-1 p-3">
           {nav.map((item) => (
@@ -55,7 +57,7 @@ export function AdminShell({
                   variant: active === item.href ? "secondary" : "ghost",
                   size: "sm",
                 }),
-                "justify-start"
+                "h-9 justify-start rounded-xl"
               )}
             >
               <item.icon data-icon="inline-start" />
@@ -69,39 +71,44 @@ export function AdminShell({
           ))}
         </nav>
         <div className="border-t p-3">
-          <Link
-            href="/discover"
-            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full")}
-          >
-            <HomeIcon data-icon="inline-start" />
-            Ver app
-          </Link>
+          <div className="flex flex-col gap-3 rounded-2xl border border-primary/15 bg-primary/5 p-3">
+            <span className="text-xs font-semibold text-primary">
+              Admin interno
+            </span>
+            <SignOutButton role="admin" />
+          </div>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <header className="flex flex-col gap-4 border-b bg-background/80 px-4 py-4 shadow-sm shadow-primary/5 backdrop-blur sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h1 className="font-heading text-xl font-semibold">{title}</h1>
             {description ? (
               <p className="text-sm text-muted-foreground">{description}</p>
             ) : null}
           </div>
-          <div className="flex flex-wrap gap-2 md:hidden">
-            {nav.slice(0, 4).map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  buttonVariants({
-                    variant: active === item.href ? "default" : "outline",
-                    size: "sm",
-                  })
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
+          <div className="flex flex-col gap-3 lg:items-end">
+            <div className="w-fit rounded-full border border-primary/15 bg-primary/5 px-2.5 py-1 text-xs font-semibold text-primary md:hidden">
+              Admin interno
+            </div>
+            <div className="flex flex-wrap gap-2 md:hidden">
+              {nav.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    buttonVariants({
+                      variant: active === item.href ? "default" : "outline",
+                      size: "sm",
+                    })
+                  )}
+                >
+                  {item.label}
+                </Link>
+              ))}
+              <SignOutButton role="admin" />
+            </div>
           </div>
         </header>
         <div className="flex-1 p-4 sm:p-6">{children}</div>
