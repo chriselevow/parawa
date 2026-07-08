@@ -106,14 +106,17 @@ function docId(value: unknown) {
 
 function fullName(user: FirebaseDocument<FirebaseUser> | undefined) {
   if (!user) return "Usuario Parawa"
-  return (
+  const name =
     [text(user.data.name), text(user.data.lastname)]
       .filter(Boolean)
       .join(" ") ||
     text(user.data.displayName) ||
     text(user.data.phoneNumber) ||
     `Usuario ${user.id.slice(0, 6)}`
-  )
+
+  return name.toLowerCase() === "first last"
+    ? `Usuario ${user.id.slice(0, 6)}`
+    : name
 }
 
 function categoryLabel(value: unknown) {
@@ -175,13 +178,24 @@ function storageUrl(value: unknown) {
   )}?alt=media`
 }
 
+function profileCopy(value: unknown) {
+  const raw = text(value)
+  if (!raw || raw === "noCancellationPolicy") return ""
+  return raw
+}
+
 function serviceTitle(
   value: unknown,
   serviceById: Map<string, FirebaseDocument<FirebaseService>>
 ) {
   if (typeof value === "string") {
+    const raw = text(value)
     const service = serviceById.get(docId(value))
-    return text(service?.data.title, value)
+    return (
+      text(service?.data.title) ||
+      text(service?.data.description) ||
+      (raw.includes("/") ? "" : raw)
+    )
   }
 
   if (value && typeof value === "object" && !Array.isArray(value)) {
@@ -197,10 +211,11 @@ function bookingServices(
   serviceById: Map<string, FirebaseDocument<FirebaseService>>
 ) {
   if (!Array.isArray(value)) return ["Servicio Parawa"]
-  return unique(value.map((item) => serviceTitle(item, serviceById))).slice(
-    0,
-    4
-  )
+  const services = unique(
+    value.map((item) => serviceTitle(item, serviceById))
+  ).slice(0, 4)
+
+  return services.length ? services : ["Servicio Parawa"]
 }
 
 function normalizeStatus(value: unknown): BookingStatus {
@@ -324,10 +339,13 @@ function normalizeFirebaseData(
     const servicePrices = providerServices
       .map((service) => number(service.data.price, NaN))
       .filter(Number.isFinite)
-    const category =
-      text(user.data.category) ||
-      text(providerServices[0]?.data.category) ||
-      "general"
+    const categories = unique([
+      text(user.data.category) ? categoryLabel(user.data.category) : "",
+      ...providerServices.map((service) =>
+        categoryLabel(service.data.category)
+      ),
+    ])
+    const category = categories[0] ?? "General"
 
     const providerServiceNames = unique(
       providerServices.map((service) =>
@@ -338,7 +356,7 @@ function normalizeFirebaseData(
     return {
       id: user.id,
       name: fullName(user),
-      category: categoryLabel(category),
+      category,
       area: text(user.data.address, text(user.data.country, "Panamá")),
       rating,
       reviews: providerReviews.length,
@@ -347,10 +365,11 @@ function normalizeFirebaseData(
         : number(user.data.priceStartsFrom, 0),
       verified: providerServices.length > 0,
       bio:
-        text(user.data.about) ||
-        text(user.data.cancellationPolicy) ||
+        profileCopy(user.data.about) ||
+        profileCopy(user.data.cancellationPolicy) ||
         "Proveedor registrado en Parawa.",
       imageUrl: storageUrl(user.data.profileImage),
+      categories: categories.length ? categories : [category],
       services: providerServiceNames.length
         ? providerServiceNames
         : ["Servicio Parawa"],
@@ -406,10 +425,11 @@ function normalizeFirebaseData(
 
   const categories = [
     "Todos",
-    ...unique([
-      ...providers.map((provider) => provider.category),
-      ...services.map((service) => categoryLabel(service.data.category)),
-    ]).sort((a, b) => a.localeCompare(b, "es")),
+    ...unique(
+      providers.flatMap(
+        (provider) => provider.categories ?? [provider.category]
+      )
+    ).sort((a, b) => a.localeCompare(b, "es")),
   ]
 
   const adminUsers: AdminUser[] = users.map((user) => ({

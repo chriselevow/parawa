@@ -44,6 +44,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 11. Firebase records needed to fit the existing UI models.
     - Fix: Added a read-only Firestore adapter for users, providers, services, bookings, reviews, provider slots, admin summaries, derived booking chats, and provider profile images with safe mock fallback.
 
+12. Live Firebase placeholders and high-volume bookings needed safer UI handling.
+    - Fix: Normalized placeholder names/policies, mapped provider service categories for filtering, replaced provider-dashboard demo fallbacks with empty states for live data, capped the client bookings first view to 24 items with total count, and promoted detail-page titles to `h1`.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -54,19 +57,23 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
    - Current behavior: booking, review, and message states are local demo flows.
    - Needed: create booking, update booking status, create review, and create chat/message records.
 
-3. Messaging schema is unclear.
+3. Client booking ownership is not filtered by real identity.
+   - Current behavior: without Firebase Auth, `/bookings` can only show a bounded recent slice from all normalized bookings.
+   - Needed: filter bookings by authenticated client and add status/date pagination.
+
+4. Messaging schema is unclear.
    - Current Firebase inventory did not show a clear messages collection.
    - Needed: decide whether to add `threads`/`messages` collections or reuse an existing source not yet identified.
 
-4. Provider dashboard uses read-derived metrics but not operational writes.
+5. Provider dashboard uses read-derived metrics but not operational writes.
    - Current behavior: when Firebase env is configured, dashboard metrics come from normalized bookings/providers; otherwise it falls back to demo data.
    - Needed: accept/reject booking writes, availability edits, and provider profile updates.
 
-5. Storage assets are only partially rendered.
+6. Storage assets are only partially rendered.
    - Current Firebase Storage has provider/service assets.
    - Needed: validate service/user image paths, render available profile images, and decide whether private assets need signed URLs.
 
-6. Firebase data adapters are read-only.
+7. Firebase data adapters are read-only.
    - Current behavior: UI can normalize Firestore `users`, `services`, `bookings`, `reviews`, and `provider-slots` when a service account env is configured, then falls back to local mock data.
    - Needed: validate the normalized fields against more real records and add write paths per workflow.
 
@@ -77,7 +84,10 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 - `git diff --check` passed.
 - Browser viewport check at `390x844` found no page-level horizontal overflow on `/discover`, `/providers/maria-nails`, `/bookings`, `/bookings/b1`, `/messages/maria-nails`, `/provider`, `/admin/users`, and `/admin/bookings`.
 - Intentional horizontal overflow remains only inside scroll rails for mobile category/admin navigation.
+- Live Firebase viewport check at `390x844` found no page-level horizontal overflow on `/discover`, `/bookings`, `/messages`, `/provider`, `/admin/bookings`, `/admin/providers`, and `/admin/users`.
+- Live Firebase desktop check at `1280x900` found no page-level horizontal overflow on `/discover`, a live `/providers/[id]`, `/bookings`, a live `/bookings/[id]`, `/provider`, `/admin`, `/admin/bookings`, `/admin/providers`, `/admin/users`, and `/admin/verifications`.
+- Normal production build and read-only Firebase-env production build passed.
 
 ## Recommended Next Step
 
-Validate the read-only Firebase adapter against live pages, then add Firebase Auth and one write workflow at a time: provider accept/reject, booking creation, review creation, then real messages.
+Add Firebase Auth and real role identity next, then filter client/provider data by the authenticated user before adding writes: provider accept/reject, booking creation, review creation, then real messages.

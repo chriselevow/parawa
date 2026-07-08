@@ -31,6 +31,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
 import { statusLabel } from "@/lib/mock-data"
 import { getParawaData } from "@/lib/parawa-data"
 import { cn } from "@/lib/utils"
@@ -163,7 +170,18 @@ const fallbackActivity = [
 
 export default async function ProviderDashboardPage() {
   const data = await getParawaData()
-  const provider = data.providers[0]
+  const bookingCountByProvider = data.bookings.reduce((counts, booking) => {
+    counts.set(booking.providerId, (counts.get(booking.providerId) ?? 0) + 1)
+    return counts
+  }, new Map<string, number>())
+  const provider = data.providers.reduce<
+    (typeof data.providers)[number] | undefined
+  >((current, candidate) => {
+    if (!current) return candidate
+    const currentCount = bookingCountByProvider.get(current.id) ?? 0
+    const candidateCount = bookingCountByProvider.get(candidate.id) ?? 0
+    return candidateCount > currentCount ? candidate : current
+  }, undefined)
   const providerBookings = data.bookings.filter(
     (booking) => booking.providerId === provider?.id
   )
@@ -236,14 +254,20 @@ export default async function ProviderDashboardPage() {
       booking.status === "pending" ? "Nueva" : statusLabel(booking.status),
     note: booking.notes,
   }))
-  const requests = requestRows.length ? requestRows : fallbackRequests
+  const requests =
+    requestRows.length || data.source === "firebase"
+      ? requestRows
+      : fallbackRequests
   const agendaRows = activeBookings.slice(0, 5).map((booking) => ({
     time: booking.time,
     client: booking.clientName,
     service: booking.service,
     status: statusLabel(booking.status),
   }))
-  const agenda = agendaRows.length ? agendaRows : fallbackAgenda
+  const agenda =
+    agendaRows.length || data.source === "firebase"
+      ? agendaRows
+      : fallbackAgenda
   const profileHealth = provider
     ? [
         {
@@ -274,6 +298,9 @@ export default async function ProviderDashboardPage() {
         },
       ]
     : fallbackProfileHealth
+  const profilePendingCount = profileHealth.filter(
+    (item) => !item.complete
+  ).length
   const services = provider
     ? (provider.services.length
         ? provider.services
@@ -323,7 +350,9 @@ export default async function ProviderDashboardPage() {
                 </Badge>
                 <Badge variant="outline">
                   <ShieldCheckIcon data-icon="inline-start" />
-                  Perfil verificado
+                  {provider?.verified
+                    ? "Perfil verificado"
+                    : "Verificación pendiente"}
                 </Badge>
               </div>
               <div className="max-w-2xl">
@@ -397,7 +426,10 @@ export default async function ProviderDashboardPage() {
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              {providerProfile.reviews} · 3 mejoras pequeñas pendientes
+              {providerProfile.reviews} ·{" "}
+              {profilePendingCount
+                ? `${profilePendingCount} mejoras pequeñas pendientes`
+                : "perfil operativo"}
             </p>
           </div>
         </div>
@@ -442,79 +474,95 @@ export default async function ProviderDashboardPage() {
                 </CardDescription>
               </div>
               <CardAction className="w-full sm:w-auto">
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" disabled={!requests.length}>
                   <SparklesIcon data-icon="inline-start" />
                   Autoordenar
                 </Button>
               </CardAction>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
-              {requests.map((req) => (
-                <div
-                  key={req.id}
-                  className="grid gap-4 rounded-xl border border-border/75 bg-background/80 p-4 shadow-sm shadow-primary/5"
-                >
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="break-anywhere font-semibold">
-                        {req.client}
+              {requests.length ? (
+                requests.map((req) => (
+                  <div
+                    key={req.id}
+                    className="grid gap-4 rounded-xl border border-border/75 bg-background/80 p-4 shadow-sm shadow-primary/5"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="break-anywhere font-semibold">
+                          {req.client}
+                        </p>
+                        <Badge
+                          className={cn(
+                            req.status === "Nueva"
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-[#fff3d7] text-[#7a5200]"
+                          )}
+                        >
+                          {req.status}
+                        </Badge>
+                        <span className="text-sm font-semibold text-primary">
+                          {req.amount}
+                        </span>
+                      </div>
+                      <p className="break-anywhere mt-1 text-sm text-muted-foreground">
+                        {req.service} · {req.when}
                       </p>
-                      <Badge
-                        className={cn(
-                          req.status === "Nueva"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-[#fff3d7] text-[#7a5200]"
-                        )}
+                      <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                        <span className="inline-flex items-center gap-1">
+                          <MapPinIcon className="size-3.5" />
+                          {req.distance}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <CreditCardIcon className="size-3.5" />
+                          Pago al confirmar
+                        </span>
+                      </div>
+                      <p className="break-anywhere mt-3 rounded-lg bg-muted/55 px-3 py-2 text-sm text-muted-foreground">
+                        {req.note}
+                      </p>
+                    </div>
+                    <div className="grid gap-2 border-t border-border/70 pt-3 min-[420px]:grid-cols-3 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
+                      <Button
+                        size="sm"
+                        className="h-9 w-full rounded-lg px-3 shadow-sm sm:w-auto"
                       >
-                        {req.status}
-                      </Badge>
-                      <span className="text-sm font-semibold text-primary">
-                        {req.amount}
-                      </span>
+                        <CheckCircle2Icon data-icon="inline-start" />
+                        Aceptar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-9 w-full rounded-lg px-3 sm:w-auto"
+                      >
+                        <MessageCircleIcon data-icon="inline-start" />
+                        Chat
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-9 w-full rounded-lg px-2.5 text-muted-foreground sm:w-auto"
+                      >
+                        Rechazar
+                      </Button>
                     </div>
-                    <p className="break-anywhere mt-1 text-sm text-muted-foreground">
-                      {req.service} · {req.when}
-                    </p>
-                    <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                      <span className="inline-flex items-center gap-1">
-                        <MapPinIcon className="size-3.5" />
-                        {req.distance}
-                      </span>
-                      <span className="inline-flex items-center gap-1">
-                        <CreditCardIcon className="size-3.5" />
-                        Pago al confirmar
-                      </span>
-                    </div>
-                    <p className="break-anywhere mt-3 rounded-lg bg-muted/55 px-3 py-2 text-sm text-muted-foreground">
-                      {req.note}
-                    </p>
                   </div>
-                  <div className="grid gap-2 border-t border-border/70 pt-3 min-[420px]:grid-cols-3 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
-                    <Button
-                      size="sm"
-                      className="h-9 w-full rounded-lg px-3 shadow-sm sm:w-auto"
-                    >
-                      <CheckCircle2Icon data-icon="inline-start" />
-                      Aceptar
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-9 w-full rounded-lg px-3 sm:w-auto"
-                    >
-                      <MessageCircleIcon data-icon="inline-start" />
-                      Chat
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-9 w-full rounded-lg px-2.5 text-muted-foreground sm:w-auto"
-                    >
-                      Rechazar
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <Empty className="border border-border/70 bg-background/70">
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <InboxIcon />
+                    </EmptyMedia>
+                    <EmptyTitle>Sin solicitudes pendientes</EmptyTitle>
+                    <EmptyDescription>
+                      Las reservas históricas siguen alimentando métricas, pero
+                      este proveedor no tiene solicitudes activas para
+                      responder.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              )}
             </CardContent>
             <CardFooter className="grid gap-3 sm:flex sm:items-center sm:justify-between">
               <p className="text-xs text-muted-foreground">
@@ -542,36 +590,51 @@ export default async function ProviderDashboardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="overflow-hidden rounded-xl border border-border/75">
-                {agenda.map((slot, index) => (
-                  <div
-                    key={`${slot.time}-${slot.client}`}
-                    className={cn(
-                      "grid gap-3 bg-background p-4 sm:grid-cols-[5rem_minmax(0,1fr)_auto]",
-                      index !== agenda.length - 1 && "border-b"
-                    )}
-                  >
-                    <div className="flex items-center gap-2 font-heading font-semibold text-primary">
-                      <Clock3Icon className="size-4" />
-                      {slot.time}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="break-anywhere font-medium">
-                        {slot.client}
-                      </p>
-                      <p className="break-anywhere text-sm text-muted-foreground">
-                        {slot.service}
-                      </p>
-                    </div>
-                    <Badge
-                      className="w-fit bg-[#e7f7f3] text-[#087466]"
-                      variant="outline"
+              {agenda.length ? (
+                <div className="overflow-hidden rounded-xl border border-border/75">
+                  {agenda.map((slot, index) => (
+                    <div
+                      key={`${slot.time}-${slot.client}`}
+                      className={cn(
+                        "grid gap-3 bg-background p-4 sm:grid-cols-[5rem_minmax(0,1fr)_auto]",
+                        index !== agenda.length - 1 && "border-b"
+                      )}
                     >
-                      {slot.status}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
+                      <div className="flex items-center gap-2 font-heading font-semibold text-primary">
+                        <Clock3Icon className="size-4" />
+                        {slot.time}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="break-anywhere font-medium">
+                          {slot.client}
+                        </p>
+                        <p className="break-anywhere text-sm text-muted-foreground">
+                          {slot.service}
+                        </p>
+                      </div>
+                      <Badge
+                        className="w-fit bg-[#e7f7f3] text-[#087466]"
+                        variant="outline"
+                      >
+                        {slot.status}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <Empty className="border border-border/70 bg-background/70">
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <CalendarDaysIcon />
+                    </EmptyMedia>
+                    <EmptyTitle>Agenda libre hoy</EmptyTitle>
+                    <EmptyDescription>
+                      No hay reservas activas para este proveedor en el tablero
+                      actual.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              )}
             </CardContent>
           </Card>
         </div>

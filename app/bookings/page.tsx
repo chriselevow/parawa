@@ -17,10 +17,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
 import { buttonVariants } from "@/components/ui/button"
 import { statusLabel } from "@/lib/mock-data"
 import { getBookings } from "@/lib/parawa-data"
 import { cn } from "@/lib/utils"
+
+const BOOKINGS_PAGE_LIMIT = 24
 
 function statusVariant(status: string) {
   if (status === "accepted") return "default"
@@ -31,6 +40,8 @@ function statusVariant(status: string) {
 
 export default async function BookingsPage() {
   const bookings = await getBookings()
+  const visibleBookings = bookings.slice(0, BOOKINGS_PAGE_LIMIT)
+  const hiddenCount = Math.max(bookings.length - visibleBookings.length, 0)
   const upcomingCount = bookings.filter(
     (booking) => booking.status === "accepted" || booking.status === "pending"
   ).length
@@ -52,13 +63,18 @@ export default async function BookingsPage() {
             {upcomingCount} activas
           </span>
           <span className="rounded-full border bg-card px-3 py-1 text-sm font-medium">
-            {completedCount} completada
+            {completedCount} completadas
           </span>
+          {hiddenCount ? (
+            <span className="rounded-full border bg-card px-3 py-1 text-sm font-medium text-muted-foreground">
+              Mostrando {visibleBookings.length} de {bookings.length}
+            </span>
+          ) : null}
         </div>
       </div>
 
       <div className="flex flex-col gap-4">
-        {bookings.map((booking) => (
+        {visibleBookings.map((booking) => (
           <Card key={booking.id}>
             <CardHeader>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -145,6 +161,32 @@ export default async function BookingsPage() {
             </CardFooter>
           </Card>
         ))}
+        {!visibleBookings.length ? (
+          <Empty className="border border-border/70 bg-card">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <CalendarDaysIcon />
+              </EmptyMedia>
+              <EmptyTitle>No hay reservas todavía</EmptyTitle>
+              <EmptyDescription>
+                Cuando el usuario tenga solicitudes, aparecerán aquí con estado,
+                pago, proveedor y acceso al chat.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : null}
+        {hiddenCount ? (
+          <Card size="sm">
+            <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-muted-foreground">
+                Hay {hiddenCount} reservas adicionales en Firebase. En la
+                siguiente etapa esto debe pasar a filtros por cliente, estado y
+                fecha.
+              </p>
+              <Badge variant="outline">{bookings.length} total</Badge>
+            </CardContent>
+          </Card>
+        ) : null}
       </div>
     </PrototypeShell>
   )

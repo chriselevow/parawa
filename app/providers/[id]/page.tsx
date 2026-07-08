@@ -55,9 +55,9 @@ export default async function ProviderPage({
               <AvatarFallback className="text-lg">{initials}</AvatarFallback>
             </Avatar>
             <div className="flex min-w-0 flex-1 flex-col gap-2">
-              <CardTitle className="break-anywhere text-2xl">
+              <h1 className="break-anywhere font-heading text-2xl leading-snug font-medium">
                 {provider.name}
-              </CardTitle>
+              </h1>
               <CardDescription className="break-anywhere">
                 {provider.category}
               </CardDescription>

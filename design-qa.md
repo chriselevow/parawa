@@ -33,7 +33,21 @@
 - Tightened the provider request-card action area after screenshot review: actions now sit in a compact horizontal row instead of a heavy vertical rail.
 - Added client-side shell navigation state so provider hash anchors can mark `Solicitudes` or `Perfil` active instead of always highlighting `Panel`.
 - Reduced provider nav and sign-out button sizing for narrow viewports.
+- Added read-only Firebase data-fit polish after live Firestore wiring: provider dashboard now chooses the most data-rich provider while role cookies are mock-only, uses empty states instead of demo requests when live data has no active work, and keeps Firebase placeholder values like `First Last` and `noCancellationPolicy` out of visible UI.
+- Updated discover filtering so Firebase providers can match every normalized service category attached to them, not only their primary category.
+- Capped the first client bookings view to 24 visible reservations with a clear total count, keeping the mobile surface usable when Firebase returns hundreds of bookings.
+- Promoted provider detail and booking detail titles to real `h1` elements.
+
+## Latest Responsive/Data-Fit Evidence
+
+- Mobile viewport `390x844`: `/discover`, `/bookings`, `/messages`, `/provider`, `/admin/bookings`, `/admin/providers`, and `/admin/users` reported `0` page-level horizontal overflow with live Firebase env.
+- Desktop viewport `1280x900`: `/discover`, a live `/providers/[id]`, `/bookings`, a live `/bookings/[id]`, `/provider`, `/admin`, `/admin/bookings`, `/admin/providers`, `/admin/users`, and `/admin/verifications` reported `0` page-level horizontal overflow.
+- Live Firebase provider dashboard showed `Datos Firebase activos` and no `Mock local activo`.
+- Live detail checks found no visible `First Last` or `noCancellationPolicy` placeholders.
+- Production builds passed both without Firebase env and with the read-only Firebase service account env.
 
 ## Final Result
 
-final result: blocked
+formal visual comparison result: blocked because no source visual target exists.
+
+responsive/data-fit result: passed for the checked routes above.

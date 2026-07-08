@@ -19,6 +19,7 @@ function providerMatchesQuery(provider: Provider, query: string) {
   return [
     provider.name,
     provider.category,
+    ...(provider.categories ?? []),
     provider.area,
     provider.bio,
     ...provider.services,
@@ -41,7 +42,9 @@ export function DiscoverExperience({
   const filteredProviders = useMemo(() => {
     return providers.filter((provider) => {
       const matchesCategory =
-        category === "Todos" || provider.category === category
+        category === "Todos" ||
+        provider.category === category ||
+        Boolean(provider.categories?.includes(category))
       return matchesCategory && providerMatchesQuery(provider, query)
     })
   }, [category, providers, query])

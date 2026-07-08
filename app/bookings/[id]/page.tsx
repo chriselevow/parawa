@@ -71,9 +71,9 @@ export default async function BookingDetailPage({
                   <Badge variant={statusVariant(booking.status)}>
                     {statusLabel(booking.status)}
                   </Badge>
-                  <CardTitle className="break-anywhere mt-3 text-2xl">
+                  <h1 className="break-anywhere mt-3 font-heading text-2xl leading-snug font-medium">
                     {booking.service}
-                  </CardTitle>
+                  </h1>
                   <CardDescription className="break-anywhere">
                     {booking.providerName} · {booking.code}
                   </CardDescription>
