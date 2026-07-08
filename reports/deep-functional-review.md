@@ -71,6 +71,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 20. Discover still hid providers behind a first-page cap and Firebase collection reads had default maximum document counts.
     - Fix: Replaced the discover cap with query-param search, category filter, sort, reset, pagination, and filtered empty states; Firebase collection reads now continue through Firestore pagination unless a caller passes an explicit `maxDocs` limit.
 
+21. Provider profiles still normalized only the first twelve Firebase service names.
+    - Fix: Removed the adapter service-name cap and added query-param service search, reset, pagination, and no-result empty states on `/providers/[id]`.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -122,6 +125,10 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
     - Current behavior: `/discover` filters, sorts, and paginates after the read-only adapter normalizes all provider records.
     - Needed: Firestore-backed provider search/category/sort pagination once Firebase Auth, indexes, and production query rules are in place.
 
+13. Provider service controls are still client-side over normalized reads.
+    - Current behavior: `/providers/[id]` filters and paginates after the read-only adapter normalizes all service names for that provider.
+    - Needed: provider-service subqueries or indexed service pagination once Firestore query rules and production indexes are in place.
+
 ## Responsive/Data-Fit Checks
 
 - `next build` passed with the bundled Node runtime.
@@ -159,6 +166,10 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
   `/discover?sort=rating&page=1`,
   `/discover?q=zzzz-no-provider&page=99&sort=price-asc`, and page-clamped
   `/discover?page=99`.
+- Latest provider-profile service smoke check found service search,
+  pagination, filtered empty states, booking/message CTAs, `0` page-level
+  horizontal overflow, and no overflowing elements on a live Firebase
+  `/providers/[id]` route at `390x844` and `1280x900`.
 
 ## Recommended Next Step
 

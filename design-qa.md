@@ -70,6 +70,10 @@
   filter, sort, clear, pagination, and filter-aware empty states; the Firebase
   collection reader now paginates through all documents unless a caller opts
   into an explicit `maxDocs` limit.
+- Removed the hidden Firebase service-name cap from provider normalization and
+  added URL-backed search, clear, pagination, and empty states to
+  `/providers/[id]` service catalogs so public provider profiles can fit full
+  Firebase service lists.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -113,6 +117,11 @@
   `/discover?page=99`; checks found search/category/sort controls, pagination
   or filtered empty state as expected, `0` page-level horizontal overflow, and
   no overflowing elements.
+- URL-backed provider service controls passed on a live Firebase provider at
+  `390x844` and `1280x900` for base, no-result search, and page-clamped
+  `/providers/[id]` URLs; checks found service search, pagination or filtered
+  empty state as expected, booking/message CTAs, `0` page-level horizontal
+  overflow, and no overflowing elements.
 
 ## Final Result
 

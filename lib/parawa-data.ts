@@ -383,7 +383,7 @@ function normalizeFirebaseData(
       providerServices.map((service) =>
         text(service.data.title, text(service.data.description))
       )
-    ).slice(0, 12)
+    )
 
     return {
       id: user.id,
