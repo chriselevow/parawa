@@ -192,19 +192,22 @@ export default function ProviderDashboardPage() {
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid gap-2 sm:flex sm:flex-wrap">
               <Link
                 href="/providers/maria-nails"
-                className={cn(buttonVariants({ size: "lg" }))}
+                className={cn(
+                  buttonVariants({ size: "lg" }),
+                  "w-full sm:w-auto"
+                )}
               >
                 <EyeIcon data-icon="inline-start" />
                 Ver perfil público
               </Link>
-              <Button size="lg" variant="outline">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto">
                 <CalendarDaysIcon data-icon="inline-start" />
                 Editar disponibilidad
               </Button>
-              <Button size="lg" variant="outline">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto">
                 <MessageCircleIcon data-icon="inline-start" />
                 Responder chats
               </Button>
@@ -221,7 +224,7 @@ export default function ProviderDashboardPage() {
               </div>
               <ActivityIcon className="text-primary" />
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid gap-2 min-[420px]:grid-cols-3">
               {[
                 ["Respuesta", providerProfile.response],
                 ["Rating", providerProfile.rating],
@@ -231,10 +234,10 @@ export default function ProviderDashboardPage() {
                   key={label}
                   className="rounded-xl border border-primary/10 bg-background/80 p-3"
                 >
-                  <p className="text-[0.7rem] font-medium text-muted-foreground">
+                  <p className="break-anywhere text-[0.7rem] font-medium text-muted-foreground">
                     {label}
                   </p>
-                  <p className="mt-1 font-heading text-lg font-semibold">
+                  <p className="break-anywhere mt-1 font-heading text-lg font-semibold">
                     {value}
                   </p>
                 </div>
@@ -268,10 +271,10 @@ export default function ProviderDashboardPage() {
               </div>
               <div>
                 <CardDescription>{stat.label}</CardDescription>
-                <CardTitle className="mt-1 text-2xl font-semibold">
+                <CardTitle className="break-anywhere mt-1 text-2xl font-semibold">
                   {stat.value}
                 </CardTitle>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="break-anywhere mt-1 text-xs text-muted-foreground">
                   {stat.detail}
                 </p>
               </div>
@@ -291,7 +294,7 @@ export default function ProviderDashboardPage() {
                   contexto.
                 </CardDescription>
               </div>
-              <CardAction>
+              <CardAction className="w-full sm:w-auto">
                 <Button size="sm" variant="outline">
                   <SparklesIcon data-icon="inline-start" />
                   Autoordenar
@@ -306,7 +309,9 @@ export default function ProviderDashboardPage() {
                 >
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold">{req.client}</p>
+                      <p className="break-anywhere font-semibold">
+                        {req.client}
+                      </p>
                       <Badge
                         className={cn(
                           req.status === "Nueva"
@@ -320,7 +325,7 @@ export default function ProviderDashboardPage() {
                         {req.amount}
                       </span>
                     </div>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="break-anywhere mt-1 text-sm text-muted-foreground">
                       {req.service} · {req.when}
                     </p>
                     <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
@@ -333,19 +338,22 @@ export default function ProviderDashboardPage() {
                         Pago al confirmar
                       </span>
                     </div>
-                    <p className="mt-3 rounded-lg bg-muted/55 px-3 py-2 text-sm text-muted-foreground">
+                    <p className="break-anywhere mt-3 rounded-lg bg-muted/55 px-3 py-2 text-sm text-muted-foreground">
                       {req.note}
                     </p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2 border-t border-border/70 pt-3 sm:justify-end">
-                    <Button size="sm" className="h-8 rounded-lg px-3 shadow-sm">
+                  <div className="grid gap-2 border-t border-border/70 pt-3 min-[420px]:grid-cols-3 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
+                    <Button
+                      size="sm"
+                      className="h-9 w-full rounded-lg px-3 shadow-sm sm:w-auto"
+                    >
                       <CheckCircle2Icon data-icon="inline-start" />
                       Aceptar
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-8 rounded-lg px-3"
+                      className="h-9 w-full rounded-lg px-3 sm:w-auto"
                     >
                       <MessageCircleIcon data-icon="inline-start" />
                       Chat
@@ -353,7 +361,7 @@ export default function ProviderDashboardPage() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-8 rounded-lg px-2.5 text-muted-foreground"
+                      className="h-9 w-full rounded-lg px-2.5 text-muted-foreground sm:w-auto"
                     >
                       Rechazar
                     </Button>
@@ -361,14 +369,17 @@ export default function ProviderDashboardPage() {
                 </div>
               ))}
             </CardContent>
-            <CardFooter className="justify-between gap-3">
+            <CardFooter className="grid gap-3 sm:flex sm:items-center sm:justify-between">
               <p className="text-xs text-muted-foreground">
                 SLA recomendado: responder solicitudes nuevas en menos de 10
                 min.
               </p>
               <Link
                 href="/providers/maria-nails"
-                className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "sm" }),
+                  "w-full sm:w-auto"
+                )}
               >
                 Ver perfil
                 <ArrowUpRightIcon data-icon="inline-end" />
@@ -398,8 +409,10 @@ export default function ProviderDashboardPage() {
                       {slot.time}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-medium">{slot.client}</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="break-anywhere font-medium">
+                        {slot.client}
+                      </p>
+                      <p className="break-anywhere text-sm text-muted-foreground">
                         {slot.service}
                       </p>
                     </div>
@@ -445,22 +458,24 @@ export default function ProviderDashboardPage() {
                         <Clock3Icon className="size-4" />
                       )}
                     </div>
-                    <p className="truncate text-sm font-medium">{item.label}</p>
+                    <p className="break-anywhere line-clamp-2 text-sm font-medium">
+                      {item.label}
+                    </p>
                   </div>
-                  <span className="shrink-0 text-xs font-semibold text-muted-foreground">
+                  <span className="break-anywhere shrink-0 text-right text-xs font-semibold text-muted-foreground">
                     {item.value}
                   </span>
                 </div>
               ))}
             </CardContent>
-            <CardFooter className="flex-wrap gap-2">
-              <Button size="sm" variant="outline">
+            <CardFooter className="grid gap-2 sm:flex sm:flex-wrap">
+              <Button size="sm" variant="outline" className="w-full sm:w-auto">
                 Editar servicios
               </Button>
-              <Button size="sm" variant="outline">
+              <Button size="sm" variant="outline" className="w-full sm:w-auto">
                 Horarios
               </Button>
-              <Button size="sm" variant="outline">
+              <Button size="sm" variant="outline" className="w-full sm:w-auto">
                 Portafolio
               </Button>
             </CardFooter>
@@ -480,9 +495,11 @@ export default function ProviderDashboardPage() {
                   className="rounded-xl border border-border/70 bg-background/80 p-3"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-medium">{service.name}</p>
-                      <p className="text-xs text-muted-foreground">
+                    <div className="min-w-0">
+                      <p className="break-anywhere font-medium">
+                        {service.name}
+                      </p>
+                      <p className="break-anywhere text-xs text-muted-foreground">
                         {service.bookings}
                       </p>
                     </div>

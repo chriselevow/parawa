@@ -23,24 +23,28 @@ export default function AdminVerificationsPage() {
           <Card key={item.id}>
             <CardHeader>
               <div className="flex items-start justify-between gap-2">
-                <div>
-                  <CardTitle>{item.name}</CardTitle>
-                  <CardDescription>{item.category}</CardDescription>
+                <div className="min-w-0">
+                  <CardTitle className="break-anywhere">{item.name}</CardTitle>
+                  <CardDescription className="break-anywhere">
+                    {item.category}
+                  </CardDescription>
                 </div>
                 <Badge variant="secondary">{item.submitted}</Badge>
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="break-anywhere text-sm text-muted-foreground">
                 Documentos: {item.documents}
               </p>
             </CardContent>
-            <CardFooter className="flex gap-2">
-              <Button size="sm">Aprobar</Button>
-              <Button size="sm" variant="outline">
+            <CardFooter className="grid gap-2 sm:flex sm:flex-wrap">
+              <Button size="sm" className="w-full sm:w-auto">
+                Aprobar
+              </Button>
+              <Button size="sm" variant="outline" className="w-full sm:w-auto">
                 Rechazar
               </Button>
-              <Button size="sm" variant="ghost">
+              <Button size="sm" variant="ghost" className="w-full sm:w-auto">
                 Ver docs
               </Button>
             </CardFooter>

@@ -66,18 +66,18 @@ export default async function BookingDetailPage({
           <Card>
             <CardHeader>
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
+                <div className="min-w-0">
                   <Badge variant={statusVariant(booking.status)}>
                     {statusLabel(booking.status)}
                   </Badge>
-                  <CardTitle className="mt-3 text-2xl">
+                  <CardTitle className="break-anywhere mt-3 text-2xl">
                     {booking.service}
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="break-anywhere">
                     {booking.providerName} · {booking.code}
                   </CardDescription>
                 </div>
-                <div className="rounded-xl border border-primary/10 bg-secondary/45 p-3 text-sm">
+                <div className="shrink-0 rounded-xl border border-primary/10 bg-secondary/45 p-3 text-sm">
                   <p className="font-heading text-xl font-semibold">
                     ${booking.total}
                   </p>
@@ -91,21 +91,21 @@ export default async function BookingDetailPage({
               <div className="rounded-xl border bg-background p-4">
                 <CalendarDaysIcon className="text-primary" />
                 <p className="mt-3 text-sm font-medium">Fecha y hora</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="break-anywhere text-sm text-muted-foreground">
                   {booking.shortDate} · {booking.time}
                 </p>
               </div>
               <div className="rounded-xl border bg-background p-4">
                 <MapPinIcon className="text-primary" />
                 <p className="mt-3 text-sm font-medium">Ubicación</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="break-anywhere text-sm text-muted-foreground">
                   {booking.address}
                 </p>
               </div>
               <div className="rounded-xl border bg-background p-4">
                 <CreditCardIcon className="text-primary" />
                 <p className="mt-3 text-sm font-medium">Pago</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="break-anywhere text-sm text-muted-foreground">
                   {paymentLabel(booking.paymentStatus)} ·{" "}
                   {booking.paymentMethod}
                 </p>
@@ -118,10 +118,13 @@ export default async function BookingDetailPage({
                 </p>
               </div>
             </CardContent>
-            <CardFooter className="flex-wrap gap-2">
+            <CardFooter className="grid gap-2 sm:flex sm:flex-wrap">
               <Link
                 href={`/messages/${booking.providerId}`}
-                className={cn(buttonVariants({ size: "sm" }))}
+                className={cn(
+                  buttonVariants({ size: "sm" }),
+                  "w-full sm:w-auto"
+                )}
               >
                 <MessageCircleIcon data-icon="inline-start" />
                 Abrir chat
@@ -129,7 +132,8 @@ export default async function BookingDetailPage({
               <Link
                 href={`/providers/${booking.providerId}`}
                 className={cn(
-                  buttonVariants({ variant: "outline", size: "sm" })
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "w-full sm:w-auto"
                 )}
               >
                 Ver proveedor
@@ -169,9 +173,14 @@ export default async function BookingDetailPage({
                 ["Creada", booking.createdAt],
                 ["Método", booking.serviceLocation],
               ].map(([label, value]) => (
-                <div key={label} className="flex justify-between gap-3">
+                <div
+                  key={label}
+                  className="grid gap-1 min-[420px]:grid-cols-[auto_minmax(0,1fr)] min-[420px]:items-start"
+                >
                   <span className="text-muted-foreground">{label}</span>
-                  <span className="text-right font-medium">{value}</span>
+                  <span className="break-anywhere font-medium min-[420px]:text-right">
+                    {value}
+                  </span>
                 </div>
               ))}
               <Separator />
@@ -192,7 +201,9 @@ export default async function BookingDetailPage({
               <CardTitle>Notas</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">{booking.notes}</p>
+              <p className="break-anywhere text-sm text-muted-foreground">
+                {booking.notes}
+              </p>
             </CardContent>
           </Card>
         </aside>

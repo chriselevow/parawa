@@ -59,7 +59,7 @@ export function DiscoverExperience() {
           aria-label="Buscar servicios"
           className="h-10"
         />
-        <div className="flex flex-wrap gap-2">
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible">
           {categories.map((cat) => (
             <Button
               key={cat}
@@ -93,7 +93,7 @@ export function DiscoverExperience() {
       </div>
 
       {filteredProviders.length ? (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid items-stretch gap-4 md:grid-cols-2">
           {filteredProviders.map((provider) => (
             <ProviderCard key={provider.id} provider={provider} />
           ))}

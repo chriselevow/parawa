@@ -23,16 +23,20 @@ export function ProviderCard({ provider }: { provider: Provider }) {
     .slice(0, 2)
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
-        <div className="flex items-start gap-3">
+        <div className="grid gap-3 min-[420px]:grid-cols-[auto_minmax(0,1fr)]">
           <Avatar className="size-12">
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <CardTitle>{provider.name}</CardTitle>
-            <CardDescription>{provider.category}</CardDescription>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <CardTitle className="break-anywhere line-clamp-2">
+              {provider.name}
+            </CardTitle>
+            <CardDescription className="break-anywhere">
+              {provider.category}
+            </CardDescription>
+            <div className="break-anywhere mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <MapPinIcon data-icon="inline-start" />
               {provider.area}
             </div>
@@ -52,7 +56,23 @@ export function ProviderCard({ provider }: { provider: Provider }) {
           )}
           <Badge variant="outline">Desde ${provider.priceFrom}</Badge>
         </div>
-        <p className="mt-3 line-clamp-2 text-muted-foreground">{provider.bio}</p>
+        <p className="break-anywhere mt-3 line-clamp-3 text-muted-foreground">
+          {provider.bio}
+        </p>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {provider.services.slice(0, 3).map((service) => (
+            <Badge
+              key={service}
+              variant="outline"
+              className="max-w-full text-left leading-snug whitespace-normal"
+            >
+              <span className="break-anywhere line-clamp-1">{service}</span>
+            </Badge>
+          ))}
+          {provider.services.length > 3 ? (
+            <Badge variant="secondary">+{provider.services.length - 3}</Badge>
+          ) : null}
+        </div>
       </CardContent>
       <CardFooter>
         <Link

@@ -35,6 +35,12 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 8. Booking detail was missing as a first-class screen.
    - Fix: Added `/bookings/[id]` with status timeline, payment, location, notes, summary, provider link, chat link, and review action.
 
+9. Mobile and Firebase-sized data needed stronger layout tolerance.
+   - Fix: Added mobile card views for admin bookings/providers/users, horizontal scroll rails for dense navigation/filter groups, safe wrapping for provider names, services, notes, addresses, emails, booking IDs, and chat messages, plus full-width mobile action rows for booking, provider, chat, review, and admin controls.
+
+10. Desktop tables were doing too much work on phones.
+    - Fix: Kept desktop tables for admin density, but hid them on mobile behind readable cards and gave tables a stable minimum width for larger screens.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected.
@@ -60,6 +66,18 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 6. Storage assets are not rendered.
    - Current Firebase Storage has provider/service assets.
    - Needed: map service/user image paths to public or signed URLs and render them in cards and profiles.
+
+7. Firebase data adapters are still missing.
+   - Current behavior: UI now has safer containers for long/missing data, but records are still manually shaped in mock arrays.
+   - Needed: normalize Firestore `users`, `services`, `bookings`, `reviews`, and `provider-slots` into the UI models before replacing mock data.
+
+## Responsive/Data-Fit Checks
+
+- `next build` passed with the bundled Node runtime.
+- `tsc --noEmit` passed.
+- `git diff --check` passed.
+- Browser viewport check at `390x844` found no page-level horizontal overflow on `/discover`, `/providers/maria-nails`, `/bookings`, `/bookings/b1`, `/messages/maria-nails`, `/provider`, `/admin/users`, and `/admin/bookings`.
+- Intentional horizontal overflow remains only inside scroll rails for mobile category/admin navigation.
 
 ## Recommended Next Step
 

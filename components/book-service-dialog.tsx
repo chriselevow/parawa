@@ -64,21 +64,25 @@ export function BookServiceDialog({ provider }: { provider: Provider }) {
               </DialogDescription>
             </DialogHeader>
             <div className="rounded-xl border bg-muted/35 p-3 text-sm">
-              <p className="font-medium">{provider.services[0]}</p>
-              <p className="text-muted-foreground">
+              <p className="break-anywhere font-medium">
+                {provider.services[0]}
+              </p>
+              <p className="break-anywhere text-muted-foreground">
                 Vie 23 May · 3:00 PM · desde ${provider.priceFrom}
               </p>
             </div>
             <DialogFooter className="flex-col gap-2 sm:flex-row">
               <DialogClose
-                render={<Button variant="outline" className="sm:flex-1" />}
+                render={
+                  <Button variant="outline" className="w-full sm:flex-1" />
+                }
               >
                 Seguir viendo
               </DialogClose>
               <Link
                 href="/bookings"
                 onClick={() => setOpen(false)}
-                className={cn(buttonVariants(), "sm:flex-1")}
+                className={cn(buttonVariants(), "w-full sm:flex-1")}
               >
                 Ver mis reservas
               </Link>
@@ -87,7 +91,9 @@ export function BookServiceDialog({ provider }: { provider: Provider }) {
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>Reservar con {provider.name}</DialogTitle>
+              <DialogTitle className="break-anywhere">
+                Reservar con {provider.name}
+              </DialogTitle>
               <DialogDescription>
                 Confirma una solicitud demo. Si no has entrado, te pedirá acceso
                 de cliente al abrir tus reservas.
@@ -153,11 +159,16 @@ export function BookServiceDialog({ provider }: { provider: Provider }) {
             </form>
             <DialogFooter className="flex-col gap-2 sm:flex-row">
               <DialogClose
-                render={<Button variant="outline" className="sm:flex-1" />}
+                render={
+                  <Button variant="outline" className="w-full sm:flex-1" />
+                }
               >
                 Cancelar
               </DialogClose>
-              <Button className="sm:flex-1" onClick={() => setConfirmed(true)}>
+              <Button
+                className="w-full sm:flex-1"
+                onClick={() => setConfirmed(true)}
+              >
                 Confirmar reserva
               </Button>
             </DialogFooter>

@@ -92,7 +92,7 @@ export function AdminShell({
             <div className="w-fit rounded-full border border-primary/15 bg-primary/5 px-2.5 py-1 text-xs font-semibold text-primary md:hidden">
               Admin interno
             </div>
-            <div className="flex flex-wrap gap-2 md:hidden">
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:hidden">
               {nav.map((item) => (
                 <Link
                   key={item.href}
@@ -101,7 +101,8 @@ export function AdminShell({
                     buttonVariants({
                       variant: active === item.href ? "default" : "outline",
                       size: "sm",
-                    })
+                    }),
+                    "shrink-0"
                   )}
                 >
                   {item.label}

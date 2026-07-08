@@ -94,7 +94,10 @@ export default function AdminDashboardPage() {
             </div>
             <Link
               href="/admin/verifications"
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "self-start")}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "self-start"
+              )}
             >
               Revisar cola
             </Link>
@@ -107,16 +110,28 @@ export default function AdminDashboardPage() {
             <CardDescription>Navegación rápida del admin</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
-            <Link href="/admin/providers" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+            <Link
+              href="/admin/providers"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            >
               Proveedores
             </Link>
-            <Link href="/admin/bookings" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+            <Link
+              href="/admin/bookings"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            >
               Reservas
             </Link>
-            <Link href="/admin/users" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+            <Link
+              href="/admin/users"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            >
               Usuarios
             </Link>
-            <Link href="/" className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>
+            <Link
+              href="/"
+              className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+            >
               Landing
             </Link>
           </CardContent>
@@ -126,38 +141,70 @@ export default function AdminDashboardPage() {
       <Card className="mt-6">
         <CardHeader>
           <CardTitle>Reservas recientes</CardTitle>
-          <CardDescription>Últimas transacciones en la plataforma</CardDescription>
+          <CardDescription>
+            Últimas transacciones en la plataforma
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Proveedor</TableHead>
-                <TableHead>Servicio</TableHead>
-                <TableHead>Monto</TableHead>
-                <TableHead>Estado</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recentAdminBookings.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell className="font-mono text-xs">{row.id}</TableCell>
-                  <TableCell>{row.client}</TableCell>
-                  <TableCell>{row.provider}</TableCell>
-                  <TableCell>{row.service}</TableCell>
-                  <TableCell>${row.amount}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{row.status}</Badge>
-                  </TableCell>
+          <div className="grid gap-3 md:hidden">
+            {recentAdminBookings.map((row) => (
+              <div
+                key={row.id}
+                className="rounded-xl border bg-background p-3 text-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-mono text-xs text-muted-foreground">
+                      {row.id}
+                    </p>
+                    <p className="break-anywhere font-medium">{row.service}</p>
+                  </div>
+                  <Badge variant="outline">{row.status}</Badge>
+                </div>
+                <div className="mt-3 grid gap-1 text-muted-foreground">
+                  <p className="break-anywhere">Cliente: {row.client}</p>
+                  <p className="break-anywhere">Proveedor: {row.provider}</p>
+                  <p className="font-medium text-foreground">${row.amount}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Proveedor</TableHead>
+                  <TableHead>Servicio</TableHead>
+                  <TableHead>Monto</TableHead>
+                  <TableHead>Estado</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {recentAdminBookings.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell className="font-mono text-xs">
+                      {row.id}
+                    </TableCell>
+                    <TableCell>{row.client}</TableCell>
+                    <TableCell>{row.provider}</TableCell>
+                    <TableCell>{row.service}</TableCell>
+                    <TableCell>${row.amount}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{row.status}</Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
           <Link
             href="/admin/bookings"
-            className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "mt-4")}
+            className={cn(
+              buttonVariants({ variant: "ghost", size: "sm" }),
+              "mt-4"
+            )}
           >
             Ver todas →
           </Link>

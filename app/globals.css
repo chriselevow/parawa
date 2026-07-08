@@ -134,3 +134,10 @@
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  .break-anywhere {
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+}

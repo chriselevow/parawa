@@ -48,13 +48,17 @@ export default async function ProviderPage({
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-            <Avatar className="size-16">
+            <Avatar className="size-16 shrink-0">
               <AvatarFallback className="text-lg">{initials}</AvatarFallback>
             </Avatar>
-            <div className="flex flex-1 flex-col gap-2">
-              <CardTitle className="text-2xl">{provider.name}</CardTitle>
-              <CardDescription>{provider.category}</CardDescription>
-              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
+              <CardTitle className="break-anywhere text-2xl">
+                {provider.name}
+              </CardTitle>
+              <CardDescription className="break-anywhere">
+                {provider.category}
+              </CardDescription>
+              <div className="break-anywhere flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 <MapPinIcon data-icon="inline-start" />
                 {provider.area}
                 <Badge variant="secondary">
@@ -67,18 +71,18 @@ export default async function ProviderPage({
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <p>{provider.bio}</p>
+          <p className="break-anywhere">{provider.bio}</p>
           <Separator />
           <div className="flex flex-col gap-2">
             <h2 className="font-medium">Servicios</h2>
-            <ul className="flex flex-col gap-2">
+            <ul className="grid gap-2 sm:grid-cols-2">
               {provider.services.map((service) => (
                 <li
                   key={service}
-                  className="flex items-center justify-between rounded-lg border px-3 py-2"
+                  className="flex min-w-0 flex-col gap-1 rounded-lg border px-3 py-2 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between"
                 >
-                  <span>{service}</span>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="break-anywhere font-medium">{service}</span>
+                  <span className="shrink-0 text-sm text-muted-foreground">
                     desde ${provider.priceFrom}
                   </span>
                 </li>

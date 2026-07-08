@@ -53,12 +53,12 @@ export default function MessagesPage() {
                     </Avatar>
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <CardTitle className="text-base">
+                        <CardTitle className="break-anywhere text-base">
                           {thread.providerName}
                         </CardTitle>
                         {thread.unread ? <Badge>Nuevo</Badge> : null}
                       </div>
-                      <CardDescription className="line-clamp-1">
+                      <CardDescription className="break-anywhere line-clamp-2">
                         {thread.preview}
                       </CardDescription>
                     </div>
@@ -71,13 +71,15 @@ export default function MessagesPage() {
                 <CardContent className="flex flex-wrap gap-2">
                   <Badge variant="outline">
                     <CalendarDaysIcon data-icon="inline-start" />
-                    {thread.service}
+                    <span className="break-anywhere line-clamp-1">
+                      {thread.service}
+                    </span>
                   </Badge>
                   <Badge variant="secondary">
                     {statusLabel(thread.bookingStatus)}
                   </Badge>
                   {booking ? (
-                    <span className="text-xs font-medium text-muted-foreground">
+                    <span className="break-anywhere text-xs font-medium text-muted-foreground">
                       {`Reserva ${booking.code}`}
                     </span>
                   ) : null}

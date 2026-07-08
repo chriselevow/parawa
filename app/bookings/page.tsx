@@ -45,7 +45,7 @@ export default function BookingsPage() {
             Estado de tus solicitudes, pagos y próximos servicios.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <span className="rounded-full border bg-card px-3 py-1 text-sm font-medium">
             {upcomingCount} activas
           </span>
@@ -60,7 +60,7 @@ export default function BookingsPage() {
           <Card key={booking.id}>
             <CardHeader>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant={statusVariant(booking.status)}>
                       {statusLabel(booking.status)}
@@ -69,43 +69,57 @@ export default function BookingsPage() {
                       {booking.code}
                     </span>
                   </div>
-                  <CardTitle>{booking.service}</CardTitle>
-                  <CardDescription>{booking.providerName}</CardDescription>
+                  <CardTitle className="break-anywhere">
+                    {booking.service}
+                  </CardTitle>
+                  <CardDescription className="break-anywhere">
+                    {booking.providerName}
+                  </CardDescription>
                 </div>
-                <p className="font-heading text-xl font-semibold">
+                <p className="shrink-0 font-heading text-xl font-semibold">
                   ${booking.total}
                 </p>
               </div>
             </CardHeader>
             <CardContent className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
-              <span className="flex items-center gap-2 rounded-xl border bg-background px-3 py-2">
-                <CalendarDaysIcon className="size-4 text-primary" />
-                {booking.shortDate} · {booking.time}
+              <span className="flex min-w-0 items-center gap-2 rounded-xl border bg-background px-3 py-2">
+                <CalendarDaysIcon className="size-4 shrink-0 text-primary" />
+                <span className="break-anywhere">
+                  {booking.shortDate} · {booking.time}
+                </span>
               </span>
-              <span className="flex items-center gap-2 rounded-xl border bg-background px-3 py-2">
-                <MapPinIcon className="size-4 text-primary" />
-                {booking.serviceLocation}
+              <span className="flex min-w-0 items-center gap-2 rounded-xl border bg-background px-3 py-2">
+                <MapPinIcon className="size-4 shrink-0 text-primary" />
+                <span className="break-anywhere">
+                  {booking.serviceLocation}
+                </span>
               </span>
-              <span className="flex items-center gap-2 rounded-xl border bg-background px-3 py-2">
-                <CreditCardIcon className="size-4 text-primary" />
-                {booking.paymentStatus === "paid"
-                  ? "Pagado"
-                  : booking.paymentStatus === "authorized"
-                    ? "Autorizado"
-                    : "Pendiente"}
+              <span className="flex min-w-0 items-center gap-2 rounded-xl border bg-background px-3 py-2">
+                <CreditCardIcon className="size-4 shrink-0 text-primary" />
+                <span className="break-anywhere">
+                  {booking.paymentStatus === "paid"
+                    ? "Pagado"
+                    : booking.paymentStatus === "authorized"
+                      ? "Autorizado"
+                      : "Pendiente"}
+                </span>
               </span>
             </CardContent>
-            <CardFooter className="flex flex-wrap gap-2">
+            <CardFooter className="grid gap-2 sm:flex sm:flex-wrap">
               <Link
                 href={`/bookings/${booking.id}`}
-                className={cn(buttonVariants({ size: "sm" }))}
+                className={cn(
+                  buttonVariants({ size: "sm" }),
+                  "w-full sm:w-auto"
+                )}
               >
                 Ver detalle
               </Link>
               <Link
                 href={`/providers/${booking.providerId}`}
                 className={cn(
-                  buttonVariants({ variant: "outline", size: "sm" })
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "w-full sm:w-auto"
                 )}
               >
                 Ver proveedor
@@ -114,7 +128,7 @@ export default function BookingsPage() {
                 href={`/messages/${booking.providerId}`}
                 className={cn(
                   buttonVariants({ variant: "outline", size: "sm" }),
-                  "border-primary/30 bg-primary/5 px-4 text-primary hover:bg-primary/10"
+                  "w-full border-primary/30 bg-primary/5 px-4 text-primary hover:bg-primary/10 sm:w-auto"
                 )}
               >
                 <MessageCircleIcon data-icon="inline-start" />

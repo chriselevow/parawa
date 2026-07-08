@@ -65,14 +65,14 @@ export function MessageThreadDemo({
   }
 
   return (
-    <div className="flex min-h-[34rem] flex-col overflow-hidden rounded-2xl border bg-card shadow-sm shadow-primary/5">
+    <div className="flex min-h-[calc(100svh-13rem)] flex-col overflow-hidden rounded-2xl border bg-card shadow-sm shadow-primary/5 sm:min-h-[34rem]">
       <div className="grid gap-3 border-b px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center">
-        <Avatar className="size-11">
+        <Avatar className="size-11 shrink-0">
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="font-medium">{name}</h1>
+            <h1 className="break-anywhere font-medium">{name}</h1>
             <Badge className="bg-[#e7f7f3] text-[#087466]" variant="outline">
               Disponible
             </Badge>
@@ -81,11 +81,14 @@ export function MessageThreadDemo({
             Demo local · mensajes de esta sesión
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid gap-2 sm:flex sm:flex-wrap sm:justify-end">
           {booking ? (
             <Link
               href={`/bookings/${booking.id}`}
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "w-full sm:w-auto"
+              )}
             >
               Ver reserva
             </Link>
@@ -93,7 +96,10 @@ export function MessageThreadDemo({
           {providerHref ? (
             <Link
               href={providerHref}
-              className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "sm" }),
+                "w-full sm:w-auto"
+              )}
             >
               Ver perfil
             </Link>
@@ -107,8 +113,8 @@ export function MessageThreadDemo({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge>{statusLabel(booking.status)}</Badge>
-                <p className="font-medium">{booking.service}</p>
-                <span className="text-xs font-medium text-muted-foreground">
+                <p className="break-anywhere font-medium">{booking.service}</p>
+                <span className="break-anywhere text-xs font-medium text-muted-foreground">
                   {booking.code}
                 </span>
               </div>
@@ -128,7 +134,7 @@ export function MessageThreadDemo({
             </div>
             <Link
               href={`/bookings/${booking.id}`}
-              className={cn(buttonVariants({ size: "sm" }))}
+              className={cn(buttonVariants({ size: "sm" }), "w-full lg:w-auto")}
             >
               Revisar detalle
             </Link>
@@ -145,7 +151,7 @@ export function MessageThreadDemo({
             <div
               key={`${message.from}-${index}-${message.text}`}
               className={cn(
-                "max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow-sm",
+                "break-anywhere max-w-[92%] rounded-2xl px-3 py-2 text-sm shadow-sm sm:max-w-[85%]",
                 message.from === "me"
                   ? "ml-auto bg-primary text-primary-foreground"
                   : message.from === "system"
@@ -194,7 +200,10 @@ export function MessageThreadDemo({
             </Button>
           ))}
         </div>
-        <form className="flex gap-2" onSubmit={sendMessage}>
+        <form
+          className="flex flex-col gap-2 sm:flex-row"
+          onSubmit={sendMessage}
+        >
           <Button type="button" variant="outline" size="icon">
             <PaperclipIcon />
             <span className="sr-only">Adjuntar archivo</span>

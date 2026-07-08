@@ -51,7 +51,7 @@ export function ReviewDialog({
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <DialogClose render={<Button className="sm:flex-1" />}>
+              <DialogClose render={<Button className="w-full sm:flex-1" />}>
                 Listo
               </DialogClose>
             </DialogFooter>
@@ -59,7 +59,9 @@ export function ReviewDialog({
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>Reseñar {service}</DialogTitle>
+              <DialogTitle className="break-anywhere">
+                Reseñar {service}
+              </DialogTitle>
               <DialogDescription>
                 Comparte cómo fue tu experiencia con {providerName}.
               </DialogDescription>
@@ -102,11 +104,16 @@ export function ReviewDialog({
             </div>
             <DialogFooter className="flex-col gap-2 sm:flex-row">
               <DialogClose
-                render={<Button variant="outline" className="sm:flex-1" />}
+                render={
+                  <Button variant="outline" className="w-full sm:flex-1" />
+                }
               >
                 Cancelar
               </DialogClose>
-              <Button className="sm:flex-1" onClick={() => setSubmitted(true)}>
+              <Button
+                className="w-full sm:flex-1"
+                onClick={() => setSubmitted(true)}
+              >
                 Publicar reseña
               </Button>
             </DialogFooter>
