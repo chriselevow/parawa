@@ -1,4 +1,5 @@
 export const ROLE_COOKIE = "parawa_role"
+export const USER_COOKIE = "parawa_user_id"
 
 export type AppRole = "client" | "provider" | "admin"
 

@@ -15,13 +15,25 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
 import { statusLabel } from "@/lib/mock-data"
-import { getBookings, getMessageThreads } from "@/lib/parawa-data"
+import {
+  getBookingsForClient,
+  getMessageThreadsForClient,
+} from "@/lib/parawa-data"
+import { getActiveSession } from "@/lib/session"
 
 export default async function MessagesPage() {
+  const { userId } = await getActiveSession()
   const [messageThreads, bookings] = await Promise.all([
-    getMessageThreads(),
-    getBookings(),
+    getMessageThreadsForClient(userId),
+    getBookingsForClient(userId),
   ])
   const bookingById = new Map(bookings.map((booking) => [booking.id, booking]))
 
@@ -95,6 +107,20 @@ export default async function MessagesPage() {
             </Link>
           )
         })}
+        {!messageThreads.length ? (
+          <Empty className="border border-border/70 bg-card">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <MessageCircleIcon />
+              </EmptyMedia>
+              <EmptyTitle>No hay conversaciones todavía</EmptyTitle>
+              <EmptyDescription>
+                Cuando esta identidad tenga reservas o consultas, los chats
+                aparecerán aquí con su contexto de servicio.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : null}
       </div>
     </PrototypeShell>
   )

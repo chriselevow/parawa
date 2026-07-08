@@ -39,7 +39,8 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { statusLabel } from "@/lib/mock-data"
-import { getParawaData } from "@/lib/parawa-data"
+import { getParawaData, getProviderForSession } from "@/lib/parawa-data"
+import { getActiveSession } from "@/lib/session"
 import { cn } from "@/lib/utils"
 
 const fallbackProviderProfile = {
@@ -169,19 +170,9 @@ const fallbackActivity = [
 ]
 
 export default async function ProviderDashboardPage() {
+  const { userId } = await getActiveSession()
   const data = await getParawaData()
-  const bookingCountByProvider = data.bookings.reduce((counts, booking) => {
-    counts.set(booking.providerId, (counts.get(booking.providerId) ?? 0) + 1)
-    return counts
-  }, new Map<string, number>())
-  const provider = data.providers.reduce<
-    (typeof data.providers)[number] | undefined
-  >((current, candidate) => {
-    if (!current) return candidate
-    const currentCount = bookingCountByProvider.get(current.id) ?? 0
-    const candidateCount = bookingCountByProvider.get(candidate.id) ?? 0
-    return candidateCount > currentCount ? candidate : current
-  }, undefined)
+  const provider = await getProviderForSession(userId)
   const providerBookings = data.bookings.filter(
     (booking) => booking.providerId === provider?.id
   )

@@ -26,6 +26,7 @@ export type Provider = {
 export type Booking = {
   id: string
   code: string
+  clientId?: string
   clientName: string
   providerId: string
   providerName: string
@@ -145,6 +146,7 @@ export const bookings: Booking[] = [
   {
     id: "b1",
     code: "PAR-1042",
+    clientId: "pedro-lopez",
     clientName: "Pedro López",
     providerId: "maria-nails",
     providerName: "María González",
@@ -187,6 +189,7 @@ export const bookings: Booking[] = [
   {
     id: "b2",
     code: "PAR-1043",
+    clientId: "pedro-lopez",
     clientName: "Pedro López",
     providerId: "luis-tech",
     providerName: "Luis Herrera",
@@ -225,6 +228,7 @@ export const bookings: Booking[] = [
   {
     id: "b3",
     code: "PAR-1031",
+    clientId: "pedro-lopez",
     clientName: "Pedro López",
     providerId: "carlos-barber",
     providerName: "Carlos Méndez",

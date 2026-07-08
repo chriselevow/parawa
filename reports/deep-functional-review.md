@@ -47,18 +47,21 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 12. Live Firebase placeholders and high-volume bookings needed safer UI handling.
     - Fix: Normalized placeholder names/policies, mapped provider service categories for filtering, replaced provider-dashboard demo fallbacks with empty states for live data, capped the client bookings first view to 24 items with total count, and promoted detail-page titles to `h1`.
 
+13. Role sessions did not carry a stable demo identity.
+    - Fix: Added a secondary mock identity cookie selected from Firebase-derived booking/provider data, then used it to filter client bookings, booking detail, client chats, and the provider dashboard.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
-   - Current behavior: role cookie demo.
+   - Current behavior: role cookie demo with a Firebase-derived example identity cookie.
    - Needed: Firebase Auth sign-in, role claims/profile lookup, protected routes based on real user identity.
 
 2. Writes are not persisted.
    - Current behavior: booking, review, and message states are local demo flows.
    - Needed: create booking, update booking status, create review, and create chat/message records.
 
-3. Client booking ownership is not filtered by real identity.
-   - Current behavior: without Firebase Auth, `/bookings` can only show a bounded recent slice from all normalized bookings.
+3. Client booking ownership is not filtered by authenticated identity.
+   - Current behavior: `/bookings`, booking detail, and client chats filter by a selected demo identity cookie, not a real Firebase Auth user.
    - Needed: filter bookings by authenticated client and add status/date pagination.
 
 4. Messaging schema is unclear.

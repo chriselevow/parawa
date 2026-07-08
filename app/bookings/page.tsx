@@ -26,7 +26,8 @@ import {
 } from "@/components/ui/empty"
 import { buttonVariants } from "@/components/ui/button"
 import { statusLabel } from "@/lib/mock-data"
-import { getBookings } from "@/lib/parawa-data"
+import { getBookingsForClient } from "@/lib/parawa-data"
+import { getActiveSession } from "@/lib/session"
 import { cn } from "@/lib/utils"
 
 const BOOKINGS_PAGE_LIMIT = 24
@@ -39,7 +40,8 @@ function statusVariant(status: string) {
 }
 
 export default async function BookingsPage() {
-  const bookings = await getBookings()
+  const { userId } = await getActiveSession()
+  const bookings = await getBookingsForClient(userId)
   const visibleBookings = bookings.slice(0, BOOKINGS_PAGE_LIMIT)
   const hiddenCount = Math.max(bookings.length - visibleBookings.length, 0)
   const upcomingCount = bookings.filter(
@@ -59,6 +61,11 @@ export default async function BookingsPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {userId ? (
+            <span className="break-anywhere rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-sm font-medium text-primary">
+              Sesión demo filtrada
+            </span>
+          ) : null}
           <span className="rounded-full border bg-card px-3 py-1 text-sm font-medium">
             {upcomingCount} activas
           </span>

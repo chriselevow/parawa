@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
+import { getSessionIdentityOptions } from "@/lib/parawa-data"
 import { normalizeRole, roleLabels, safeNextPath } from "@/lib/roles"
 import { cn } from "@/lib/utils"
 
@@ -26,6 +27,7 @@ export default async function LoginPage({
   const params = await searchParams
   const intent = normalizeRole(params?.role)
   const nextPath = safeNextPath(params?.next)
+  const identities = await getSessionIdentityOptions()
   const title = intent
     ? `Entrar como ${roleLabels[intent].toLowerCase()}`
     : "Entrar a Parawa"
@@ -50,13 +52,18 @@ export default async function LoginPage({
               <p className="text-sm font-semibold">Sin clave por ahora</p>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              Este prototipo usa accesos de rol. El login con correo y
-              contraseña se conecta cuando activemos Firebase Auth.
+              Este prototipo usa accesos de rol con una identidad Firebase de
+              ejemplo. El login con correo y contraseña se conecta cuando
+              activemos Firebase Auth.
             </p>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-2">
-          <RoleLoginActions intent={intent} nextPath={nextPath} />
+          <RoleLoginActions
+            identities={identities}
+            intent={intent}
+            nextPath={nextPath}
+          />
           <p className="text-center text-xs text-muted-foreground">
             ¿Quieres reservar?{" "}
             <Link

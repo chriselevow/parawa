@@ -24,7 +24,8 @@ import {
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { statusLabel } from "@/lib/mock-data"
-import { getBooking } from "@/lib/parawa-data"
+import { getBookingForClient } from "@/lib/parawa-data"
+import { getActiveSession } from "@/lib/session"
 import { cn } from "@/lib/utils"
 
 function statusVariant(status: string) {
@@ -47,7 +48,8 @@ export default async function BookingDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const booking = await getBooking(id)
+  const { userId } = await getActiveSession()
+  const booking = await getBookingForClient(id, userId)
   if (!booking) notFound()
 
   return (

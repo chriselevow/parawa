@@ -27,6 +27,9 @@
 - Added mock role cookie handling for `client`, `provider`, and `admin`.
 - Added `proxy.ts` route guards for provider, admin, bookings, and messages.
 - Added role-aware login actions with safe next-path routing.
+- Added Firebase-backed demo identity selection to role login so client,
+  provider, and message surfaces can filter by a stable example user before
+  real Firebase Auth is connected.
 - Added role-specific sign out controls that appear only when the matching mock role is active.
 - Redesigned the provider dashboard into a higher-end operational surface inspired by Firebase/Cloud dashboards: status header, KPI scorecards, request queue, daily agenda, profile health, service performance, and recent activity.
 - Kept provider navigation scoped to provider-only destinations while preserving the `/provider#solicitudes` and `/provider#perfil` anchors.
@@ -37,6 +40,9 @@
 - Updated discover filtering so Firebase providers can match every normalized service category attached to them, not only their primary category.
 - Capped the first client bookings view to 24 visible reservations with a clear total count, keeping the mobile surface usable when Firebase returns hundreds of bookings.
 - Promoted provider detail and booking detail titles to real `h1` elements.
+- Filtered client reservations, booking detail, and chat lists by the selected
+  demo identity, and filtered the provider dashboard by the selected provider
+  identity.
 
 ## Latest Responsive/Data-Fit Evidence
 

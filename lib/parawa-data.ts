@@ -51,6 +51,12 @@ export type ParawaData = {
   recentAdminBookings: AdminBookingRow[]
 }
 
+export type SessionIdentityOption = {
+  id: string
+  label: string
+  detail?: string
+}
+
 const categoryLabels: Record<string, string> = {
   beauty: "Belleza",
   carServices: "Autos",
@@ -286,6 +292,31 @@ function timelineForBooking(booking: {
   ]
 }
 
+function messageThreadsForBookings(bookings: Booking[]) {
+  return Array.from(
+    bookings
+      .reduce((threads, booking) => {
+        const threadId = booking.providerId || booking.id
+        if (threads.has(threadId)) return threads
+
+        threads.set(threadId, {
+          id: threadId,
+          providerId: booking.providerId,
+          providerName: booking.providerName,
+          service: booking.service,
+          bookingId: booking.id,
+          bookingStatus: booking.status,
+          timestamp: booking.createdAt,
+          preview: `Chat vinculado a ${booking.code}.`,
+          unread: booking.status === "pending",
+        })
+
+        return threads
+      }, new Map<string, MessageThread>())
+      .values()
+  ).slice(0, 10)
+}
+
 function normalizeFirebaseData(
   users: FirebaseDocument<FirebaseUser>[],
   services: FirebaseDocument<FirebaseService>[],
@@ -397,6 +428,7 @@ function normalizeFirebaseData(
       return {
         id: booking.id,
         code: `PAR-${booking.id.slice(-5).toUpperCase()}`,
+        clientId: customerId,
         clientName: fullName(userById.get(customerId)),
         providerId,
         providerName,
@@ -475,28 +507,7 @@ function normalizeFirebaseData(
   const completedBookings = normalizedBookings.filter(
     (booking) => booking.status === "completed"
   )
-  const messageThreads = Array.from(
-    normalizedBookings
-      .reduce((threads, booking) => {
-        const threadId = booking.providerId || booking.id
-        if (threads.has(threadId)) return threads
-
-        threads.set(threadId, {
-          id: threadId,
-          providerId: booking.providerId,
-          providerName: booking.providerName,
-          service: booking.service,
-          bookingId: booking.id,
-          bookingStatus: booking.status,
-          timestamp: booking.createdAt,
-          preview: `Chat vinculado a ${booking.code}.`,
-          unread: booking.status === "pending",
-        })
-
-        return threads
-      }, new Map<string, MessageThread>())
-      .values()
-  ).slice(0, 10)
+  const messageThreads = messageThreadsForBookings(normalizedBookings)
 
   return {
     source: "firebase",
@@ -576,8 +587,37 @@ export async function getProvider(id: string) {
   )
 }
 
+export async function getProviderForSession(providerId?: string) {
+  const data = await getParawaData()
+  const providerBookings = data.bookings.reduce((counts, booking) => {
+    counts.set(booking.providerId, (counts.get(booking.providerId) ?? 0) + 1)
+    return counts
+  }, new Map<string, number>())
+
+  if (providerId) {
+    const sessionProvider = data.providers.find(
+      (provider) => provider.id === providerId
+    )
+    if (sessionProvider) return sessionProvider
+  }
+
+  return data.providers.reduce<Provider | undefined>((current, candidate) => {
+    if (!current) return candidate
+    const currentCount = providerBookings.get(current.id) ?? 0
+    const candidateCount = providerBookings.get(candidate.id) ?? 0
+    return candidateCount > currentCount ? candidate : current
+  }, undefined)
+}
+
 export async function getBookings() {
   return (await getParawaData()).bookings
+}
+
+export async function getBookingsForClient(clientId?: string) {
+  const bookings = await getBookings()
+  if (!clientId) return bookings
+
+  return bookings.filter((booking) => booking.clientId === clientId)
 }
 
 export async function getBooking(id: string) {
@@ -585,6 +625,13 @@ export async function getBooking(id: string) {
   return (
     data.bookings.find((booking) => booking.id === id) ?? getMockBooking(id)
   )
+}
+
+export async function getBookingForClient(id: string, clientId?: string) {
+  const booking = await getBooking(id)
+  if (!booking || !clientId) return booking
+
+  return booking.clientId === clientId ? booking : undefined
 }
 
 export async function getBookingForProvider(providerId: string) {
@@ -599,6 +646,11 @@ export async function getMessageThreads() {
   return (await getParawaData()).messageThreads
 }
 
+export async function getMessageThreadsForClient(clientId?: string) {
+  const bookings = await getBookingsForClient(clientId)
+  return messageThreadsForBookings(bookings)
+}
+
 export async function getAdminData() {
   const data = await getParawaData()
   return {
@@ -606,5 +658,52 @@ export async function getAdminData() {
     adminUsers: data.adminUsers,
     pendingVerifications: data.pendingVerifications,
     recentAdminBookings: data.recentAdminBookings,
+  }
+}
+
+export async function getSessionIdentityOptions(): Promise<{
+  client?: SessionIdentityOption
+  provider?: SessionIdentityOption
+}> {
+  const data = await getParawaData()
+  const providerCounts = data.bookings.reduce((counts, booking) => {
+    counts.set(booking.providerId, (counts.get(booking.providerId) ?? 0) + 1)
+    return counts
+  }, new Map<string, number>())
+  const clientCounts = data.bookings.reduce((counts, booking) => {
+    if (!booking.clientId) return counts
+    const current = counts.get(booking.clientId) ?? {
+      count: 0,
+      label: booking.clientName,
+    }
+    counts.set(booking.clientId, {
+      count: current.count + 1,
+      label: booking.clientName || current.label,
+    })
+    return counts
+  }, new Map<string, { count: number; label: string }>())
+
+  const provider = [...data.providers].sort(
+    (a, b) => (providerCounts.get(b.id) ?? 0) - (providerCounts.get(a.id) ?? 0)
+  )[0]
+  const client = [...clientCounts.entries()].sort(
+    (a, b) => b[1].count - a[1].count
+  )[0]
+
+  return {
+    client: client
+      ? {
+          id: client[0],
+          label: client[1].label,
+          detail: `${client[1].count} reservas`,
+        }
+      : undefined,
+    provider: provider
+      ? {
+          id: provider.id,
+          label: provider.name,
+          detail: `${providerCounts.get(provider.id) ?? 0} reservas`,
+        }
+      : undefined,
   }
 }
