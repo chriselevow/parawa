@@ -74,6 +74,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 21. Provider profiles still normalized only the first twelve Firebase service names.
     - Fix: Removed the adapter service-name cap and added query-param service search, reset, pagination, and no-result empty states on `/providers/[id]`.
 
+22. Booking dialog service selection rendered every provider service as a select option.
+    - Fix: Replaced the full service select with a bounded searchable picker, pagination, selected-state controls, filtered empty state, and mobile-safe dialog scrolling.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -129,6 +132,10 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
     - Current behavior: `/providers/[id]` filters and paginates after the read-only adapter normalizes all service names for that provider.
     - Needed: provider-service subqueries or indexed service pagination once Firestore query rules and production indexes are in place.
 
+14. Booking dialog still creates only a local demo reservation.
+    - Current behavior: service selection now fits Firebase-sized provider catalogs, but confirmation does not persist a booking.
+    - Needed: create Firestore booking writes tied to authenticated client/provider identities.
+
 ## Responsive/Data-Fit Checks
 
 - `next build` passed with the bundled Node runtime.
@@ -170,6 +177,11 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
   pagination, filtered empty states, booking/message CTAs, `0` page-level
   horizontal overflow, and no overflowing elements on a live Firebase
   `/providers/[id]` route at `390x844` and `1280x900`.
+- Latest booking-dialog smoke check at `390x844` on a live Firebase provider
+  found the bounded searchable service picker, selected state, pagination,
+  no-result service search, confirmation CTA, mobile-safe dialog scrolling, and
+  `0` page-level horizontal overflow. The only offscreen nodes detected were
+  Base UI focus sentinels, not visible content.
 
 ## Recommended Next Step
 

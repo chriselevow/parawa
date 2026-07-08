@@ -74,6 +74,9 @@
   added URL-backed search, clear, pagination, and empty states to
   `/providers/[id]` service catalogs so public provider profiles can fit full
   Firebase service lists.
+- Replaced the booking dialog's full service select with a bounded searchable
+  service picker, pagination, selected-state controls, and filtered empty state;
+  shared dialog content now has mobile max-height and vertical scrolling.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -122,6 +125,10 @@
   `/providers/[id]` URLs; checks found service search, pagination or filtered
   empty state as expected, booking/message CTAs, `0` page-level horizontal
   overflow, and no overflowing elements.
+- Booking dialog controls passed at `390x844` on a live Firebase provider:
+  opening `Reservar` showed the bounded service picker, selected state,
+  pagination, confirmation CTA, and no-result search state; the dialog fit the
+  viewport with vertical scrolling and `0` page-level horizontal overflow.
 
 ## Final Result
 
