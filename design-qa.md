@@ -62,6 +62,10 @@
 - Removed hidden provider dashboard caps from agenda and service performance:
   active agenda rows and provider services now render in bounded scroll regions
   with explicit counts.
+- Removed the hidden Firebase cap from admin verifications: the adapter now
+  returns the full pending verification queue, and `/admin/verifications`
+  provides search, missing-service/document filters, clear, pagination, and
+  filter-aware empty states.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -94,6 +98,11 @@
   `/provider?filter=pending&page=1`, page-clamped `/provider?page=2`, and
   `/provider?filter=accepted&q=zzzz-no-request&page=1`, all with `0`
   page-level horizontal overflow.
+- URL-backed admin verification controls passed at `390x844` and `1280x900`
+  for `/admin/verifications?filter=missing-services&page=1`,
+  page-clamped `/admin/verifications?page=2`, and
+  `/admin/verifications?filter=documents&q=zzzz-no-verification&page=1`, all
+  with `0` page-level horizontal overflow.
 
 ## Final Result
 

@@ -494,7 +494,6 @@ function normalizeFirebaseData(
 
   const pendingVerifications: PendingVerification[] = providers
     .filter((provider) => !provider.verified)
-    .slice(0, 8)
     .map((provider) => ({
       id: provider.id,
       name: provider.name,

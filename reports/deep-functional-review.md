@@ -65,6 +65,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 18. Provider dashboard request and service sections still had hidden caps.
     - Fix: Added query-param search, pending/confirmed filters, reset, pagination, and filtered empty states for active provider requests; removed the fixed agenda/service caps and placed long lists in bounded scroll regions with explicit counts.
 
+19. Admin verifications still received only the first eight pending providers.
+    - Fix: Removed the adapter cap and added query-param search, missing-service/document filters, reset, pagination, and filtered empty states on `/admin/verifications`.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -97,7 +100,7 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
    - Needed: validate the normalized fields against more real records and add write paths per workflow.
 
 8. Admin list controls are still client-side over normalized reads.
-   - Current behavior: large Firebase collections support query-param search, filters, and pagination after the read-only adapter normalizes records.
+   - Current behavior: large Firebase collections support query-param search, filters, and pagination after the read-only adapter normalizes records, including bookings, providers, users, and verifications.
    - Needed: backend/server-query pagination and sorting once Firebase Auth and Firestore rules are in place.
 
 9. Client booking controls are still client-side over normalized reads.
@@ -140,6 +143,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 - Latest provider request-control smoke check found search/filter/page-clamp
   controls and `0` page-level horizontal overflow at `390x844` and `1280x900`
   on filtered, page-clamped, and no-result `/provider` URLs.
+- Latest admin verification-control smoke check found search/filter/page-clamp
+  controls and `0` page-level horizontal overflow at `390x844` and `1280x900`
+  on filtered, page-clamped, and no-result `/admin/verifications` URLs.
 
 ## Recommended Next Step
 
