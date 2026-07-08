@@ -48,6 +48,7 @@ export type ParawaData = {
   adminStats: typeof mockAdminStats
   adminUsers: AdminUser[]
   pendingVerifications: PendingVerification[]
+  adminBookings: AdminBookingRow[]
   recentAdminBookings: AdminBookingRow[]
 }
 
@@ -479,16 +480,17 @@ function normalizeFirebaseData(
     status: "active",
   }))
 
-  const recentAdminBookings: AdminBookingRow[] = normalizedBookings
-    .slice(0, 12)
-    .map((booking) => ({
+  const adminBookings: AdminBookingRow[] = normalizedBookings.map(
+    (booking) => ({
       id: booking.code,
       client: booking.clientName,
       provider: booking.providerName,
       service: booking.service,
       amount: booking.total,
       status: booking.status,
-    }))
+    })
+  )
+  const recentAdminBookings = adminBookings.slice(0, 12)
 
   const pendingVerifications: PendingVerification[] = providers
     .filter((provider) => !provider.verified)
@@ -530,6 +532,7 @@ function normalizeFirebaseData(
     },
     adminUsers,
     pendingVerifications,
+    adminBookings,
     recentAdminBookings,
   }
 }
@@ -544,6 +547,7 @@ function mockData(): ParawaData {
     adminStats: mockAdminStats,
     adminUsers: mockAdminUsers,
     pendingVerifications: mockPendingVerifications,
+    adminBookings: mockRecentAdminBookings,
     recentAdminBookings: mockRecentAdminBookings,
   }
 }
@@ -657,6 +661,7 @@ export async function getAdminData() {
     adminStats: data.adminStats,
     adminUsers: data.adminUsers,
     pendingVerifications: data.pendingVerifications,
+    adminBookings: data.adminBookings,
     recentAdminBookings: data.recentAdminBookings,
   }
 }

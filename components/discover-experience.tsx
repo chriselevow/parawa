@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input"
 import type { Provider } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
 
+const DISCOVER_VISIBLE_LIMIT = 24
+
 function providerMatchesQuery(provider: Provider, query: string) {
   const normalizedQuery = query.trim().toLowerCase()
   if (!normalizedQuery) return true
@@ -48,6 +50,11 @@ export function DiscoverExperience({
       return matchesCategory && providerMatchesQuery(provider, query)
     })
   }, [category, providers, query])
+  const visibleProviders = filteredProviders.slice(0, DISCOVER_VISIBLE_LIMIT)
+  const hiddenCount = Math.max(
+    filteredProviders.length - visibleProviders.length,
+    0
+  )
 
   return (
     <>
@@ -101,12 +108,26 @@ export function DiscoverExperience({
         </div>
       </div>
 
-      {filteredProviders.length ? (
-        <div className="grid items-stretch gap-4 md:grid-cols-2">
-          {filteredProviders.map((provider) => (
-            <ProviderCard key={provider.id} provider={provider} />
-          ))}
-        </div>
+      {visibleProviders.length ? (
+        <>
+          <div className="grid items-stretch gap-4 md:grid-cols-2">
+            {visibleProviders.map((provider) => (
+              <ProviderCard key={provider.id} provider={provider} />
+            ))}
+          </div>
+          {hiddenCount ? (
+            <Card size="sm">
+              <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Mostrando {visibleProviders.length} de{" "}
+                  {filteredProviders.length} proveedores. Usa búsqueda o
+                  categorías para afinar el catálogo.
+                </p>
+                <Badge variant="outline">{hiddenCount} fuera de vista</Badge>
+              </CardContent>
+            </Card>
+          ) : null}
+        </>
       ) : (
         <Card>
           <CardHeader className="items-center text-center">

@@ -43,6 +43,10 @@
 - Filtered client reservations, booking detail, and chat lists by the selected
   demo identity, and filtered the provider dashboard by the selected provider
   identity.
+- Added data-volume controls for Firebase-sized admin and discovery surfaces:
+  full admin booking rows now feed `/admin/bookings`, while bookings,
+  providers, users, and discover results render bounded first pages with total
+  counts, hidden-count notices, wrapping table cells, and empty states.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -51,6 +55,13 @@
 - Live Firebase provider dashboard showed `Datos Firebase activos` and no `Mock local activo`.
 - Live detail checks found no visible `First Last` or `noCancellationPolicy` placeholders.
 - Production builds passed both without Firebase env and with the read-only Firebase service account env.
+- Admin bookings/providers/users and discover now avoid unbounded first render
+  lists by showing capped first pages with explicit counts for additional
+  Firebase rows.
+- New data-volume smoke checks passed at `390x844` and `1280x900` for
+  `/admin/bookings`, `/admin/providers`, `/admin/users`, and `/discover`, with
+  `0` page-level horizontal overflow; `/admin/verifications` also passed at
+  `390x844`.
 
 ## Final Result
 

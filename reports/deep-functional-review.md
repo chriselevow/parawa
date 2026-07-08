@@ -50,6 +50,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 13. Role sessions did not carry a stable demo identity.
     - Fix: Added a secondary mock identity cookie selected from Firebase-derived booking/provider data, then used it to filter client bookings, booking detail, client chats, and the provider dashboard.
 
+14. Admin and discover list surfaces could over-render Firebase-sized datasets.
+    - Fix: Added full admin booking rows plus bounded first pages, totals, hidden-count notices, wrapping cells, and empty states for admin bookings, providers, users, verifications, and discover results.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -80,6 +83,10 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
    - Current behavior: UI can normalize Firestore `users`, `services`, `bookings`, `reviews`, and `provider-slots` when a service account env is configured, then falls back to local mock data.
    - Needed: validate the normalized fields against more real records and add write paths per workflow.
 
+8. Admin list controls are still first-page only.
+   - Current behavior: large Firebase collections show capped first pages with counts and guidance.
+   - Needed: real search, filters, sorting, and pagination backed by query params or server queries.
+
 ## Responsive/Data-Fit Checks
 
 - `next build` passed with the bundled Node runtime.
@@ -90,6 +97,11 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 - Live Firebase viewport check at `390x844` found no page-level horizontal overflow on `/discover`, `/bookings`, `/messages`, `/provider`, `/admin/bookings`, `/admin/providers`, and `/admin/users`.
 - Live Firebase desktop check at `1280x900` found no page-level horizontal overflow on `/discover`, a live `/providers/[id]`, `/bookings`, a live `/bookings/[id]`, `/provider`, `/admin`, `/admin/bookings`, `/admin/providers`, `/admin/users`, and `/admin/verifications`.
 - Normal production build and read-only Firebase-env production build passed.
+- Latest data-volume smoke check found no page-level horizontal overflow at
+  `390x844` on `/admin/bookings`, `/admin/providers`, `/admin/users`,
+  `/admin/verifications`, and `/discover`; it also found no page-level
+  horizontal overflow at `1280x900` on `/admin/bookings`, `/admin/providers`,
+  `/admin/users`, and `/discover`.
 
 ## Recommended Next Step
 
