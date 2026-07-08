@@ -86,6 +86,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 25. Firebase provider-slot data was fetched but not surfaced in the provider dashboard.
     - Fix: Added normalized provider availability summaries from `provider-slots`, connected them to the provider profile-health card, and added a bounded provider dashboard availability card with counts, next-slot preview, and explicit empty states for providers without matching slot docs.
 
+26. Firebase `enterprise` and `punctuality_evalution` collections were not represented in the UI.
+    - Fix: Added read-only normalization for enterprise records and punctuality evaluations, added admin routes for `/admin/enterprises` and `/admin/quality` with search/filter/pagination/mobile cards, added admin navigation links, and surfaced selected-provider punctuality summaries in the provider dashboard.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -114,7 +117,7 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
    - Needed: validate service/user image paths, render available profile images, and decide whether private assets need signed URLs.
 
 7. Firebase data adapters are read-only.
-   - Current behavior: UI can normalize Firestore `users`, `services`, `bookings`, `reviews`, and `provider-slots` when a service account env is configured, then falls back to local mock data. Provider-slot data is now represented in the provider dashboard, including an empty state when the selected provider has no matching slot docs.
+   - Current behavior: UI can normalize Firestore `users`, `services`, `bookings`, `reviews`, `provider-slots`, `enterprise`, and `punctuality_evalution` when a service account env is configured, then falls back to local mock data. Provider-slot data is represented in the provider dashboard, enterprise records have a dedicated admin list, and punctuality evaluations have global and provider-level quality surfaces.
    - Needed: validate the normalized fields against more real records and add write paths per workflow.
 
 8. Admin list controls are still client-side over normalized reads.
@@ -216,6 +219,15 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
   overflowing elements. The selected demo provider was Diego Cruvelier with 13
   reservations, which currently has no matching `provider-slots` summary in the
   rendered dashboard.
+- Enterprise and punctuality collection coverage now includes read-only
+  Firebase normalization for `enterprise` and `punctuality_evalution`,
+  dedicated admin routes, and selected-provider quality summaries. Firebase-env
+  production build passed with 16 generated routes, including
+  `/admin/enterprises` and `/admin/quality`.
+- Browser checks passed on `/admin/enterprises`, `/admin/quality`, and
+  `/provider` at `390x844` and `1280x900`: required route copy rendered,
+  `pageOverflow` was `0`, and desktop had no overflowing elements. Mobile admin
+  checks only reported items inside the intentional horizontal admin nav rail.
 
 ## Recommended Next Step
 

@@ -1,6 +1,8 @@
 import Link from "next/link"
 import {
+  Building2Icon,
   CalendarIcon,
+  GaugeIcon,
   LayoutDashboardIcon,
   type LucideIcon,
   ShieldCheckIcon,
@@ -25,6 +27,8 @@ const baseNav: Array<{
   { href: "/admin/providers", label: "Proveedores", icon: WrenchIcon },
   { href: "/admin/bookings", label: "Reservas", icon: CalendarIcon },
   { href: "/admin/users", label: "Usuarios", icon: UsersIcon },
+  { href: "/admin/enterprises", label: "Empresas", icon: Building2Icon },
+  { href: "/admin/quality", label: "Calidad", icon: GaugeIcon },
   {
     href: "/admin/verifications",
     label: "Verificaciones",

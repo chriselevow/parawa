@@ -8,6 +8,7 @@ import {
   Clock3Icon,
   CreditCardIcon,
   EyeIcon,
+  GaugeIcon,
   InboxIcon,
   MapPinIcon,
   MessageCircleIcon,
@@ -45,7 +46,11 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { type Booking, statusLabel } from "@/lib/mock-data"
-import { getParawaData, getProviderForSession } from "@/lib/parawa-data"
+import {
+  getParawaData,
+  getProviderForSession,
+  type PunctualityValue,
+} from "@/lib/parawa-data"
 import { getActiveSession } from "@/lib/session"
 import { cn } from "@/lib/utils"
 
@@ -233,6 +238,18 @@ function providerBookingMatchesQuery(booking: Booking, query: string) {
     .includes(normalizedQuery)
 }
 
+function punctualityLabel(value: PunctualityValue) {
+  if (value === "yes") return "Puntual"
+  if (value === "no") return "Tarde"
+  return "Sin respuesta"
+}
+
+function punctualityClassName(value: PunctualityValue) {
+  if (value === "yes") return "bg-[#e7f7f3] text-[#087466]"
+  if (value === "no") return "bg-destructive/10 text-destructive"
+  return ""
+}
+
 export default async function ProviderDashboardPage({
   searchParams,
 }: {
@@ -256,6 +273,11 @@ export default async function ProviderDashboardPage({
   const provider = await getProviderForSession(userId)
   const providerSlotSummary = provider
     ? data.providerSlotSummaries.find(
+        (summary) => summary.providerId === provider.id
+      )
+    : undefined
+  const providerQualitySummary = provider
+    ? data.providerQualitySummaries.find(
         (summary) => summary.providerId === provider.id
       )
     : undefined
@@ -314,8 +336,12 @@ export default async function ProviderDashboardPage({
         {
           icon: StarIcon,
           label: "Calidad",
-          value: providerProfile.rating,
-          detail: providerProfile.reviews,
+          value: providerQualitySummary
+            ? `${providerQualitySummary.onTimeRate}%`
+            : providerProfile.rating,
+          detail: providerQualitySummary
+            ? `${providerQualitySummary.onTime} puntuales · ${providerQualitySummary.late} tarde`
+            : providerProfile.reviews,
           tone: "text-[#c48100]",
         },
       ]
@@ -947,6 +973,105 @@ export default async function ProviderDashboardPage({
                     <EmptyDescription>
                       Cuando Firebase tenga provider-slots para este proveedor,
                       aparecerán aquí como resumen compacto.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Calidad Firebase</CardTitle>
+              <CardDescription>
+                Resumen de punctuality_evalution.
+              </CardDescription>
+              <CardAction>
+                <Badge variant="outline">
+                  {providerQualitySummary?.total ?? 0} eval.
+                </Badge>
+              </CardAction>
+            </CardHeader>
+            <CardContent>
+              {providerQualitySummary ? (
+                <div className="grid gap-4">
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      ["Puntual", providerQualitySummary.onTime],
+                      ["Tarde", providerQualitySummary.late],
+                      ["Sin resp.", providerQualitySummary.unknown],
+                    ].map(([label, value]) => (
+                      <div
+                        key={label}
+                        className="rounded-xl border border-border/70 bg-background/80 p-3"
+                      >
+                        <p className="font-heading text-lg font-semibold">
+                          {value}
+                        </p>
+                        <p className="break-anywhere text-[0.7rem] text-muted-foreground">
+                          {label}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="rounded-xl border border-primary/15 bg-primary/5 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-primary">
+                          Puntualidad
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Señales históricas del proveedor
+                        </p>
+                      </div>
+                      <Badge className="bg-[#e7f7f3] text-[#087466]">
+                        {providerQualitySummary.onTimeRate}%
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="grid max-h-56 gap-2 overflow-y-auto pr-1">
+                    {providerQualitySummary.recentEvaluations.map(
+                      (evaluation) => (
+                        <div
+                          key={evaluation.id}
+                          className="rounded-xl border border-border/70 bg-background/80 p-3 text-sm"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="break-anywhere font-medium">
+                                {evaluation.service}
+                              </p>
+                              <p className="break-anywhere text-xs text-muted-foreground">
+                                {evaluation.customerName} ·{" "}
+                                {evaluation.createdAt}
+                              </p>
+                            </div>
+                            <Badge
+                              className={punctualityClassName(
+                                evaluation.wasPunctual
+                              )}
+                              variant="outline"
+                            >
+                              {punctualityLabel(evaluation.wasPunctual)}
+                            </Badge>
+                          </div>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <Empty className="border border-border/70 bg-background/70">
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <GaugeIcon />
+                    </EmptyMedia>
+                    <EmptyTitle>Sin evaluaciones de puntualidad</EmptyTitle>
+                    <EmptyDescription>
+                      Cuando Firebase tenga punctuality_evalution para este
+                      proveedor, aparecerán aquí como señales de calidad.
                     </EmptyDescription>
                   </EmptyHeader>
                 </Empty>

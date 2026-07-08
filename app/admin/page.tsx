@@ -131,6 +131,18 @@ export default async function AdminDashboardPage() {
               Usuarios
             </Link>
             <Link
+              href="/admin/enterprises"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            >
+              Empresas
+            </Link>
+            <Link
+              href="/admin/quality"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            >
+              Calidad
+            </Link>
+            <Link
               href="/"
               className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
             >

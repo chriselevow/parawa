@@ -35,6 +35,44 @@ type FirebaseService = Record<string, unknown>
 type FirebaseBooking = Record<string, unknown>
 type FirebaseReview = Record<string, unknown>
 type FirebaseSlot = Record<string, unknown>
+type FirebaseEnterprise = Record<string, unknown>
+type FirebasePunctualityEvaluation = Record<string, unknown>
+
+export type EnterpriseSummary = {
+  id: string
+  name: string
+  description: string
+  imageUrl?: string
+  ownerId: string
+  ownerName: string
+  updatedAt: string
+}
+
+export type PunctualityValue = "yes" | "no" | "unknown"
+
+export type PunctualityEvaluationSummary = {
+  id: string
+  providerId: string
+  providerName: string
+  customerId: string
+  customerName: string
+  bookingId: string
+  service: string
+  serviceNames: string[]
+  serviceCount: number
+  wasPunctual: PunctualityValue
+  createdAt: string
+}
+
+export type ProviderQualitySummary = {
+  providerId: string
+  total: number
+  onTime: number
+  late: number
+  unknown: number
+  onTimeRate: number
+  recentEvaluations: PunctualityEvaluationSummary[]
+}
 
 export type ProviderSlotSummary = {
   providerId: string
@@ -62,6 +100,9 @@ export type ParawaData = {
   adminBookings: AdminBookingRow[]
   recentAdminBookings: AdminBookingRow[]
   providerSlotSummaries: ProviderSlotSummary[]
+  enterpriseSummaries: EnterpriseSummary[]
+  punctualityEvaluations: PunctualityEvaluationSummary[]
+  providerQualitySummaries: ProviderQualitySummary[]
 }
 
 export type SessionIdentityOption = {
@@ -254,6 +295,13 @@ function slotItems(value: unknown) {
     .filter(Boolean) as Record<string, unknown>[]
 }
 
+function normalizePunctualityValue(value: unknown): PunctualityValue {
+  const raw = text(value).toLowerCase()
+  if (raw === "yes" || raw === "true" || raw === "puntual") return "yes"
+  if (raw === "no" || raw === "false" || raw === "tarde") return "no"
+  return "unknown"
+}
+
 function normalizeSlotSummaries(slots: FirebaseDocument<FirebaseSlot>[]) {
   const byProvider = new Map<string, FirebaseDocument<FirebaseSlot>[]>()
 
@@ -314,6 +362,123 @@ function normalizeSlotSummaries(slots: FirebaseDocument<FirebaseSlot>[]) {
       nextTimes,
     } satisfies ProviderSlotSummary
   })
+}
+
+function normalizeEnterpriseSummaries(
+  enterprises: FirebaseDocument<FirebaseEnterprise>[],
+  userById: Map<string, FirebaseDocument<FirebaseUser>>
+) {
+  return enterprises
+    .map((enterprise) => {
+      const ownerId = docId(enterprise.data.owner)
+      const date =
+        toDate(enterprise.data.updatedAt) ?? toDate(enterprise.data.createdAt)
+
+      return {
+        id: enterprise.id,
+        name: text(
+          enterprise.data.name,
+          `Empresa ${enterprise.id.slice(0, 6)}`
+        ),
+        description:
+          profileCopy(enterprise.data.description) ||
+          "Sin descripción publicada.",
+        imageUrl: storageUrl(enterprise.data.img_url),
+        ownerId,
+        ownerName: ownerId
+          ? fullName(userById.get(ownerId))
+          : "Sin propietario asignado",
+        updatedAt: formatDateTime(date, "Sin fecha"),
+      } satisfies EnterpriseSummary
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, "es"))
+}
+
+function normalizePunctualityEvaluations(
+  evaluations: FirebaseDocument<FirebasePunctualityEvaluation>[],
+  userById: Map<string, FirebaseDocument<FirebaseUser>>,
+  serviceById: Map<string, FirebaseDocument<FirebaseService>>
+) {
+  return evaluations
+    .map((evaluation) => {
+      const providerId = docId(evaluation.data.provider)
+      const customerId = docId(evaluation.data.customer)
+      const createdAt = toDate(evaluation.data.createdAt)
+      const serviceSummary = summarizeServices(
+        bookingServices(evaluation.data.services, serviceById)
+      )
+
+      return {
+        id: evaluation.id,
+        providerId,
+        providerName: fullName(userById.get(providerId)),
+        customerId,
+        customerName: fullName(userById.get(customerId)),
+        bookingId: docId(evaluation.data.booking),
+        service: serviceSummary.service,
+        serviceNames: serviceSummary.serviceNames,
+        serviceCount: serviceSummary.serviceCount,
+        wasPunctual: normalizePunctualityValue(evaluation.data.wasPunctual),
+        createdAt: formatDateTime(createdAt, "Sin fecha"),
+        sortAt: createdAt?.getTime() ?? 0,
+      }
+    })
+    .sort((a, b) => b.sortAt - a.sortAt)
+    .map(
+      (evaluation) =>
+        ({
+          id: evaluation.id,
+          providerId: evaluation.providerId,
+          providerName: evaluation.providerName,
+          customerId: evaluation.customerId,
+          customerName: evaluation.customerName,
+          bookingId: evaluation.bookingId,
+          service: evaluation.service,
+          serviceNames: evaluation.serviceNames,
+          serviceCount: evaluation.serviceCount,
+          wasPunctual: evaluation.wasPunctual,
+          createdAt: evaluation.createdAt,
+        }) satisfies PunctualityEvaluationSummary
+    )
+}
+
+function normalizeProviderQualitySummaries(
+  evaluations: PunctualityEvaluationSummary[]
+) {
+  const byProvider = evaluations.reduce((summaries, evaluation) => {
+    if (!evaluation.providerId) return summaries
+
+    const current =
+      summaries.get(evaluation.providerId) ??
+      ({
+        providerId: evaluation.providerId,
+        total: 0,
+        onTime: 0,
+        late: 0,
+        unknown: 0,
+        onTimeRate: 0,
+        recentEvaluations: [],
+      } satisfies ProviderQualitySummary)
+
+    current.total += 1
+    if (evaluation.wasPunctual === "yes") current.onTime += 1
+    else if (evaluation.wasPunctual === "no") current.late += 1
+    else current.unknown += 1
+    current.recentEvaluations = [...current.recentEvaluations, evaluation]
+
+    summaries.set(evaluation.providerId, current)
+    return summaries
+  }, new Map<string, ProviderQualitySummary>())
+
+  return Array.from(byProvider.values())
+    .map((summary) => ({
+      ...summary,
+      onTimeRate: summary.total
+        ? Math.round((summary.onTime / summary.total) * 100)
+        : 0,
+      recentEvaluations: summary.recentEvaluations.slice(0, 6),
+    }))
+    .sort((a, b) => b.total - a.total)
 }
 
 function normalizeStatus(value: unknown): BookingStatus {
@@ -416,7 +581,9 @@ function normalizeFirebaseData(
   services: FirebaseDocument<FirebaseService>[],
   bookings: FirebaseDocument<FirebaseBooking>[],
   reviews: FirebaseDocument<FirebaseReview>[],
-  slots: FirebaseDocument<FirebaseSlot>[]
+  slots: FirebaseDocument<FirebaseSlot>[],
+  enterprises: FirebaseDocument<FirebaseEnterprise>[],
+  punctualityDocs: FirebaseDocument<FirebasePunctualityEvaluation>[]
 ): ParawaData | null {
   const userById = new Map(users.map((user) => [user.id, user]))
   const serviceById = new Map(services.map((service) => [service.id, service]))
@@ -609,6 +776,18 @@ function normalizeFirebaseData(
   )
   const messageThreads = messageThreadsForBookings(normalizedBookings)
   const providerSlotSummaries = normalizeSlotSummaries(slots)
+  const enterpriseSummaries = normalizeEnterpriseSummaries(
+    enterprises,
+    userById
+  )
+  const punctualityEvaluations = normalizePunctualityEvaluations(
+    punctualityDocs,
+    userById,
+    serviceById
+  )
+  const providerQualitySummaries = normalizeProviderQualitySummaries(
+    punctualityEvaluations
+  )
 
   return {
     source: "firebase",
@@ -634,6 +813,9 @@ function normalizeFirebaseData(
     adminBookings,
     recentAdminBookings,
     providerSlotSummaries,
+    enterpriseSummaries,
+    punctualityEvaluations,
+    providerQualitySummaries,
   }
 }
 
@@ -650,6 +832,9 @@ function mockData(): ParawaData {
     adminBookings: mockRecentAdminBookings,
     recentAdminBookings: mockRecentAdminBookings,
     providerSlotSummaries: [],
+    enterpriseSummaries: [],
+    punctualityEvaluations: [],
+    providerQualitySummaries: [],
   }
 }
 
@@ -657,17 +842,47 @@ async function loadFirebaseData() {
   if (!hasFirebaseReadConfig()) return null
 
   try {
-    const [users, services, bookings, reviews, slots] = await Promise.all([
+    const [
+      users,
+      services,
+      bookings,
+      reviews,
+      slots,
+      enterprises,
+      punctualityDocs,
+    ] = await Promise.all([
       listFirebaseCollection<FirebaseUser>("users"),
       listFirebaseCollection<FirebaseService>("services"),
       listFirebaseCollection<FirebaseBooking>("bookings"),
       listFirebaseCollection<FirebaseReview>("reviews"),
       listFirebaseCollection<FirebaseSlot>("provider-slots"),
+      listFirebaseCollection<FirebaseEnterprise>("enterprise"),
+      listFirebaseCollection<FirebasePunctualityEvaluation>(
+        "punctuality_evalution"
+      ),
     ])
 
-    if (!users || !services || !bookings || !reviews || !slots) return null
+    if (
+      !users ||
+      !services ||
+      !bookings ||
+      !reviews ||
+      !slots ||
+      !enterprises ||
+      !punctualityDocs
+    ) {
+      return null
+    }
 
-    return normalizeFirebaseData(users, services, bookings, reviews, slots)
+    return normalizeFirebaseData(
+      users,
+      services,
+      bookings,
+      reviews,
+      slots,
+      enterprises,
+      punctualityDocs
+    )
   } catch {
     return null
   }
@@ -774,6 +989,9 @@ export async function getAdminData() {
     pendingVerifications: data.pendingVerifications,
     adminBookings: data.adminBookings,
     recentAdminBookings: data.recentAdminBookings,
+    enterpriseSummaries: data.enterpriseSummaries,
+    punctualityEvaluations: data.punctualityEvaluations,
+    providerQualitySummaries: data.providerQualitySummaries,
   }
 }
 
@@ -781,6 +999,14 @@ export async function getProviderSlotSummary(providerId?: string) {
   if (!providerId) return undefined
   const data = await getParawaData()
   return data.providerSlotSummaries.find(
+    (summary) => summary.providerId === providerId
+  )
+}
+
+export async function getProviderQualitySummary(providerId?: string) {
+  if (!providerId) return undefined
+  const data = await getParawaData()
+  return data.providerQualitySummaries.find(
     (summary) => summary.providerId === providerId
   )
 }

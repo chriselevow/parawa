@@ -89,6 +89,10 @@
   provider dashboard summaries, profile-health schedule status, bounded slot
   counts, next-slot previews, and explicit no-schedule states for selected
   providers without matching slot docs.
+- Added UI coverage for the remaining sampled Firebase collections:
+  `enterprise` now has `/admin/enterprises` with search, filters, pagination,
+  mobile cards, and desktop tables; `punctuality_evalution` now has
+  `/admin/quality` plus selected-provider quality summaries on `/provider`.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -161,6 +165,12 @@
   overflowing elements. The active demo provider was Diego Cruvelier with 13
   reservations, so this pass verifies the empty-state branch for a provider
   without matching slot docs.
+- Enterprise and quality checks passed at `390x844` and `1280x900` for
+  `/admin/enterprises`, `/admin/quality`, and `/provider`: route copy,
+  filters, cards/tables, provider quality copy, and required Firebase
+  collection labels rendered; `pageOverflow` was `0` on every checked route.
+  Mobile admin routes reported only expected offscreen nodes inside the scoped
+  horizontal nav rail.
 
 ## Final Result
 
