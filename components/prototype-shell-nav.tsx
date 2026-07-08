@@ -42,7 +42,7 @@ export function PrototypeShellNav({
   }, [])
 
   return (
-    <nav className="-mx-1 flex max-w-full gap-1 overflow-x-auto px-1 pb-0.5 md:mx-0 md:justify-end md:overflow-visible md:px-0 md:pb-0">
+    <nav className="flex max-w-full gap-1 overflow-x-auto pb-0.5 md:justify-end md:overflow-visible md:pb-0">
       {links.map((link) => {
         const isHashLink = link.href.includes("#")
         const isActive = isHashLink

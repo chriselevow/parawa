@@ -46,7 +46,7 @@
 - Added data-volume controls for Firebase-sized admin and discovery surfaces:
   full admin booking rows now feed `/admin/bookings`, while bookings,
   providers, users, and discover results render bounded first pages with total
-  counts, hidden-count notices, wrapping table cells, and empty states.
+  counts, wrapping table cells, pagination, and empty states.
 - Added URL-backed admin list controls for bookings, providers, and users:
   search, filter, clear, and pagination now preserve state through query params
   and browser navigation.
@@ -66,6 +66,10 @@
   returns the full pending verification queue, and `/admin/verifications`
   provides search, missing-service/document filters, clear, pagination, and
   filter-aware empty states.
+- Replaced the hidden discover provider cap with URL-backed search, category
+  filter, sort, clear, pagination, and filter-aware empty states; the Firebase
+  collection reader now paginates through all documents unless a caller opts
+  into an explicit `maxDocs` limit.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -75,7 +79,7 @@
 - Live detail checks found no visible `First Last` or `noCancellationPolicy` placeholders.
 - Production builds passed both without Firebase env and with the read-only Firebase service account env.
 - Admin bookings/providers/users and discover now avoid unbounded first render
-  lists by showing capped first pages with explicit counts for additional
+  lists by showing paginated first pages with explicit counts for additional
   Firebase rows.
 - New data-volume smoke checks passed at `390x844` and `1280x900` for
   `/admin/bookings`, `/admin/providers`, `/admin/users`, and `/discover`, with
@@ -103,6 +107,12 @@
   page-clamped `/admin/verifications?page=2`, and
   `/admin/verifications?filter=documents&q=zzzz-no-verification&page=1`, all
   with `0` page-level horizontal overflow.
+- URL-backed discover controls passed at `390x844` and `1280x900` for
+  `/discover`, `/discover?sort=rating&page=1`,
+  `/discover?q=zzzz-no-provider&page=99&sort=price-asc`, and page-clamped
+  `/discover?page=99`; checks found search/category/sort controls, pagination
+  or filtered empty state as expected, `0` page-level horizontal overflow, and
+  no overflowing elements.
 
 ## Final Result
 

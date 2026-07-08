@@ -178,7 +178,7 @@ export async function listFirebaseCollection<T = Record<string, unknown>>(
     process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ??
     serviceAccount.project_id
   const pageSize = options.pageSize ?? 100
-  const maxDocs = options.maxDocs ?? 500
+  const maxDocs = options.maxDocs ?? Number.POSITIVE_INFINITY
   const token = await getAccessToken(serviceAccount)
   const root = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`
   const documents: FirebaseDocument<T>[] = []
@@ -186,10 +186,8 @@ export async function listFirebaseCollection<T = Record<string, unknown>>(
 
   while (documents.length < maxDocs) {
     const url = new URL(`${root}/${encodeURIComponent(collectionId)}`)
-    url.searchParams.set(
-      "pageSize",
-      String(Math.min(pageSize, maxDocs - documents.length))
-    )
+    const remainingDocs = maxDocs - documents.length
+    url.searchParams.set("pageSize", String(Math.min(pageSize, remainingDocs)))
     if (pageToken) url.searchParams.set("pageToken", pageToken)
 
     const response = await fetch(url, {

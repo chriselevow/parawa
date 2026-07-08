@@ -18,6 +18,7 @@ type FilterOption = {
 }
 
 export type AdminListParams = {
+  sort?: string
   page?: string
   q?: string
   filter?: string
@@ -34,6 +35,8 @@ function paramsFor(
   if (merged.q) next.set("q", merged.q)
   if (merged.filter && merged.filter !== "all")
     next.set("filter", merged.filter)
+  if (merged.sort && merged.sort !== "recommended")
+    next.set("sort", merged.sort)
   if (merged.page && merged.page !== "1") next.set("page", merged.page)
 
   const query = next.toString()

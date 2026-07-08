@@ -556,11 +556,11 @@ async function loadFirebaseData() {
 
   try {
     const [users, services, bookings, reviews, slots] = await Promise.all([
-      listFirebaseCollection<FirebaseUser>("users", { maxDocs: 250 }),
-      listFirebaseCollection<FirebaseService>("services", { maxDocs: 500 }),
-      listFirebaseCollection<FirebaseBooking>("bookings", { maxDocs: 500 }),
-      listFirebaseCollection<FirebaseReview>("reviews", { maxDocs: 250 }),
-      listFirebaseCollection<FirebaseSlot>("provider-slots", { maxDocs: 250 }),
+      listFirebaseCollection<FirebaseUser>("users"),
+      listFirebaseCollection<FirebaseService>("services"),
+      listFirebaseCollection<FirebaseBooking>("bookings"),
+      listFirebaseCollection<FirebaseReview>("reviews"),
+      listFirebaseCollection<FirebaseSlot>("provider-slots"),
     ])
 
     if (!users || !services || !bookings || !reviews || !slots) return null

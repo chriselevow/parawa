@@ -68,6 +68,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 19. Admin verifications still received only the first eight pending providers.
     - Fix: Removed the adapter cap and added query-param search, missing-service/document filters, reset, pagination, and filtered empty states on `/admin/verifications`.
 
+20. Discover still hid providers behind a first-page cap and Firebase collection reads had default maximum document counts.
+    - Fix: Replaced the discover cap with query-param search, category filter, sort, reset, pagination, and filtered empty states; Firebase collection reads now continue through Firestore pagination unless a caller passes an explicit `maxDocs` limit.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -115,13 +118,17 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
     - Current behavior: `/provider` filters and paginates after the read-only adapter normalizes the selected demo provider's active reservations.
     - Needed: authenticated Firestore queries by provider, status, and date once Firebase Auth and provider write flows are connected.
 
+12. Discover controls are still client-side over normalized provider reads.
+    - Current behavior: `/discover` filters, sorts, and paginates after the read-only adapter normalizes all provider records.
+    - Needed: Firestore-backed provider search/category/sort pagination once Firebase Auth, indexes, and production query rules are in place.
+
 ## Responsive/Data-Fit Checks
 
 - `next build` passed with the bundled Node runtime.
 - `tsc --noEmit` passed.
 - `git diff --check` passed.
 - Browser viewport check at `390x844` found no page-level horizontal overflow on `/discover`, `/providers/maria-nails`, `/bookings`, `/bookings/b1`, `/messages/maria-nails`, `/provider`, `/admin/users`, and `/admin/bookings`.
-- Intentional horizontal overflow remains only inside scroll rails for mobile category/admin navigation.
+- Intentional horizontal overflow remains only inside scoped mobile navigation rails where the control itself scrolls.
 - Live Firebase viewport check at `390x844` found no page-level horizontal overflow on `/discover`, `/bookings`, `/messages`, `/provider`, `/admin/bookings`, `/admin/providers`, and `/admin/users`.
 - Live Firebase desktop check at `1280x900` found no page-level horizontal overflow on `/discover`, a live `/providers/[id]`, `/bookings`, a live `/bookings/[id]`, `/provider`, `/admin`, `/admin/bookings`, `/admin/providers`, `/admin/users`, and `/admin/verifications`.
 - Normal production build and read-only Firebase-env production build passed.
@@ -146,6 +153,12 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 - Latest admin verification-control smoke check found search/filter/page-clamp
   controls and `0` page-level horizontal overflow at `390x844` and `1280x900`
   on filtered, page-clamped, and no-result `/admin/verifications` URLs.
+- Latest discover-control smoke check found search/category/sort controls,
+  result pagination, filtered empty states, `0` page-level horizontal overflow,
+  and no overflowing elements at `390x844` and `1280x900` on `/discover`,
+  `/discover?sort=rating&page=1`,
+  `/discover?q=zzzz-no-provider&page=99&sort=price-asc`, and page-clamped
+  `/discover?page=99`.
 
 ## Recommended Next Step
 
