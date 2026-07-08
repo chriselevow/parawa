@@ -59,6 +59,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 16. Client reservations still used a capped first page.
     - Fix: Added query-param search, status filter, reset, pagination, and filtered empty states on `/bookings` so large Firebase booking sets can fit the client UI.
 
+17. Client messages hid booking-derived threads behind an internal cap.
+    - Fix: Removed the derived-thread cap and added query-param search, unread/status filters, reset, pagination, and filtered empty states on `/messages`.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -75,6 +78,7 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 
 4. Messaging schema is unclear.
    - Current Firebase inventory did not show a clear messages collection.
+   - Current behavior: `/messages` derives one thread per provider from the selected demo user's bookings, then supports client-side search, filters, and pagination.
    - Needed: decide whether to add `threads`/`messages` collections or reuse an existing source not yet identified.
 
 5. Provider dashboard uses read-derived metrics but not operational writes.
@@ -96,6 +100,10 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 9. Client booking controls are still client-side over normalized reads.
    - Current behavior: `/bookings` filters and paginates after the read-only adapter normalizes the selected demo user's reservations.
    - Needed: authenticated Firestore queries by client, status, and date once Firebase Auth is connected.
+
+10. Client message controls are still client-side over derived booking threads.
+    - Current behavior: `/messages` filters and paginates after the read-only adapter derives conversations from bookings.
+    - Needed: authenticated Firestore queries over real thread/message records once the messaging schema exists.
 
 ## Responsive/Data-Fit Checks
 
@@ -119,6 +127,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 - Latest client booking-control smoke check found search/filter/pagination
   controls and `0` page-level horizontal overflow at `390x844` and `1280x900`
   on filtered, paginated, and no-result `/bookings` URLs.
+- Latest client message-control smoke check found search/filter/pagination
+  controls and `0` page-level horizontal overflow at `390x844` and `1280x900`
+  on filtered, paginated, and no-result `/messages` URLs.
 
 ## Recommended Next Step
 

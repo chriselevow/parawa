@@ -315,7 +315,7 @@ function messageThreadsForBookings(bookings: Booking[]) {
         return threads
       }, new Map<string, MessageThread>())
       .values()
-  ).slice(0, 10)
+  )
 }
 
 function normalizeFirebaseData(

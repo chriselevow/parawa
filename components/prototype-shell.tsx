@@ -30,7 +30,7 @@ export function PrototypeShell({
       : null
 
   return (
-    <div className="flex min-h-svh flex-col bg-background">
+    <div className="flex min-h-svh flex-col overflow-x-hidden bg-background">
       <header className="sticky top-0 z-40 border-b bg-background/90 shadow-sm shadow-primary/5 backdrop-blur supports-backdrop-filter:bg-background/75">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-3 py-2 sm:px-4 sm:py-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
