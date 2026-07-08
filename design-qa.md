@@ -50,6 +50,9 @@
 - Added URL-backed admin list controls for bookings, providers, and users:
   search, filter, clear, and pagination now preserve state through query params
   and browser navigation.
+- Added URL-backed client reservation controls on `/bookings`: status filter,
+  search, clear, pagination, and filtered empty states replace the previous
+  capped-list guidance.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -70,6 +73,10 @@
   `/admin/providers?filter=verified&q=a&page=1`, and
   `/admin/users?filter=provider&q=a&page=1`; the filtered empty state also
   passed on `/admin/users?filter=client&q=zzzz-no-user&page=1`.
+- URL-backed client booking controls passed at `390x844` and `1280x900` for
+  `/bookings?filter=pending&q=PAR&page=1`, `/bookings?page=2`, and
+  `/bookings?filter=completed&q=zzzz-no-booking&page=1`, all with `0`
+  page-level horizontal overflow.
 
 ## Final Result
 

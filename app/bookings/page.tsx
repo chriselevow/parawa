@@ -6,6 +6,12 @@ import {
   MessageCircleIcon,
 } from "lucide-react"
 
+import {
+  AdminListControls,
+  AdminPagination,
+  normalizeAdminListSearchParams,
+  pageItems,
+} from "@/components/admin-list-controls"
 import { PrototypeShell } from "@/components/prototype-shell"
 import { ReviewDialog } from "@/components/review-dialog"
 import { Badge } from "@/components/ui/badge"
@@ -30,7 +36,14 @@ import { getBookingsForClient } from "@/lib/parawa-data"
 import { getActiveSession } from "@/lib/session"
 import { cn } from "@/lib/utils"
 
-const BOOKINGS_PAGE_LIMIT = 24
+const BOOKINGS_PAGE_LIMIT = 12
+const BOOKING_FILTER_OPTIONS = [
+  { label: "Todas", value: "all" },
+  { label: "Pendientes", value: "pending" },
+  { label: "Confirmadas", value: "accepted" },
+  { label: "Completadas", value: "completed" },
+  { label: "Canceladas", value: "cancelled" },
+]
 
 function statusVariant(status: string) {
   if (status === "accepted") return "default"
@@ -39,17 +52,65 @@ function statusVariant(status: string) {
   return "destructive"
 }
 
-export default async function BookingsPage() {
+type ClientBooking = Awaited<ReturnType<typeof getBookingsForClient>>[number]
+
+function bookingMatchesQuery(booking: ClientBooking, query: string) {
+  if (!query) return true
+  const normalizedQuery = query.toLowerCase()
+
+  return [
+    booking.id,
+    booking.code,
+    booking.providerName,
+    booking.service,
+    booking.date,
+    booking.shortDate,
+    booking.time,
+    booking.serviceLocation,
+    booking.address,
+    booking.paymentMethod,
+    booking.paymentStatus,
+    booking.status,
+  ]
+    .join(" ")
+    .toLowerCase()
+    .includes(normalizedQuery)
+}
+
+export default async function BookingsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{
+    filter?: string
+    page?: string
+    q?: string
+  }>
+}) {
+  const params = await searchParams
+  const { filter, page, q } = normalizeAdminListSearchParams(
+    params,
+    BOOKING_FILTER_OPTIONS.map((option) => option.value)
+  )
   const { userId } = await getActiveSession()
   const bookings = await getBookingsForClient(userId)
-  const visibleBookings = bookings.slice(0, BOOKINGS_PAGE_LIMIT)
-  const hiddenCount = Math.max(bookings.length - visibleBookings.length, 0)
+  const filteredBookings = bookings.filter((booking) => {
+    const matchesFilter = filter === "all" || booking.status === filter
+    return matchesFilter && bookingMatchesQuery(booking, q)
+  })
+  const {
+    end,
+    page: currentPage,
+    start,
+    totalPages,
+    visibleItems: visibleBookings,
+  } = pageItems(filteredBookings, page, BOOKINGS_PAGE_LIMIT)
   const upcomingCount = bookings.filter(
     (booking) => booking.status === "accepted" || booking.status === "pending"
   ).length
   const completedCount = bookings.filter(
     (booking) => booking.status === "completed"
   ).length
+  const hasActiveFilters = Boolean(q) || filter !== "all"
 
   return (
     <PrototypeShell active="/bookings">
@@ -72,13 +133,21 @@ export default async function BookingsPage() {
           <span className="rounded-full border bg-card px-3 py-1 text-sm font-medium">
             {completedCount} completadas
           </span>
-          {hiddenCount ? (
-            <span className="rounded-full border bg-card px-3 py-1 text-sm font-medium text-muted-foreground">
-              Mostrando {visibleBookings.length} de {bookings.length}
-            </span>
-          ) : null}
+          <span className="rounded-full border bg-card px-3 py-1 text-sm font-medium text-muted-foreground">
+            {filteredBookings.length} de {bookings.length}
+          </span>
         </div>
       </div>
+
+      <AdminListControls
+        action="/bookings"
+        filterLabel="Estado"
+        filterOptions={BOOKING_FILTER_OPTIONS}
+        filterValue={filter}
+        resultLabel={`${filteredBookings.length} de ${bookings.length} reservas`}
+        searchPlaceholder="Buscar por proveedor, servicio, ubicación o código..."
+        searchValue={q}
+      />
 
       <div className="flex flex-col gap-4">
         {visibleBookings.map((booking) => (
@@ -174,25 +243,30 @@ export default async function BookingsPage() {
               <EmptyMedia variant="icon">
                 <CalendarDaysIcon />
               </EmptyMedia>
-              <EmptyTitle>No hay reservas todavía</EmptyTitle>
+              <EmptyTitle>
+                {hasActiveFilters
+                  ? "No hay reservas con esos filtros"
+                  : "No hay reservas todavía"}
+              </EmptyTitle>
               <EmptyDescription>
-                Cuando el usuario tenga solicitudes, aparecerán aquí con estado,
-                pago, proveedor y acceso al chat.
+                {hasActiveFilters
+                  ? "Ajusta la búsqueda o limpia los filtros para volver a todas tus reservas."
+                  : "Cuando el usuario tenga solicitudes, aparecerán aquí con estado, pago, proveedor y acceso al chat."}
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : null}
-        {hiddenCount ? (
-          <Card size="sm">
-            <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-muted-foreground">
-                Hay {hiddenCount} reservas adicionales en Firebase. En la
-                siguiente etapa esto debe pasar a filtros por cliente, estado y
-                fecha.
-              </p>
-              <Badge variant="outline">{bookings.length} total</Badge>
-            </CardContent>
-          </Card>
+        {visibleBookings.length ? (
+          <AdminPagination
+            basePath="/bookings"
+            end={end}
+            page={currentPage}
+            pageSize={BOOKINGS_PAGE_LIMIT}
+            params={{ filter, page: String(currentPage), q }}
+            start={start}
+            totalItems={filteredBookings.length}
+            totalPages={totalPages}
+          />
         ) : null}
       </div>
     </PrototypeShell>

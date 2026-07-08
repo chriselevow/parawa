@@ -56,6 +56,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 15. Admin first-page lists needed real controls.
     - Fix: Added query-param search, filters, reset, and pagination for admin bookings, providers, and users so large Firebase collections can be navigated without leaving the current surface.
 
+16. Client reservations still used a capped first page.
+    - Fix: Added query-param search, status filter, reset, pagination, and filtered empty states on `/bookings` so large Firebase booking sets can fit the client UI.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -90,6 +93,10 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
    - Current behavior: large Firebase collections support query-param search, filters, and pagination after the read-only adapter normalizes records.
    - Needed: backend/server-query pagination and sorting once Firebase Auth and Firestore rules are in place.
 
+9. Client booking controls are still client-side over normalized reads.
+   - Current behavior: `/bookings` filters and paginates after the read-only adapter normalizes the selected demo user's reservations.
+   - Needed: authenticated Firestore queries by client, status, and date once Firebase Auth is connected.
+
 ## Responsive/Data-Fit Checks
 
 - `next build` passed with the bundled Node runtime.
@@ -109,6 +116,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
   `0` page-level horizontal overflow at `390x844` and `1280x900` on filtered
   bookings, providers, and users URLs; it also verified a no-result filtered
   users empty state.
+- Latest client booking-control smoke check found search/filter/pagination
+  controls and `0` page-level horizontal overflow at `390x844` and `1280x900`
+  on filtered, paginated, and no-result `/bookings` URLs.
 
 ## Recommended Next Step
 
