@@ -1,6 +1,12 @@
 import Link from "next/link"
 import { WrenchIcon } from "lucide-react"
 
+import {
+  AdminListControls,
+  AdminPagination,
+  normalizeAdminListSearchParams,
+  pageItems,
+} from "@/components/admin-list-controls"
 import { AdminShell } from "@/components/admin-shell"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -30,13 +36,65 @@ import { getProviders } from "@/lib/parawa-data"
 import { cn } from "@/lib/utils"
 
 const ADMIN_PROVIDERS_LIMIT = 40
+const PROVIDER_FILTER_OPTIONS = [
+  { label: "Todos los estados", value: "all" },
+  { label: "Verificados", value: "verified" },
+  { label: "Pendientes", value: "pending" },
+]
 
-export default async function AdminProvidersPage() {
+type ProviderRow = Awaited<ReturnType<typeof getProviders>>[number]
+
+function providerMatchesQuery(provider: ProviderRow, query: string) {
+  if (!query) return true
+  const normalizedQuery = query.toLowerCase()
+
+  return [
+    provider.id,
+    provider.name,
+    provider.category,
+    provider.area,
+    provider.bio,
+    ...(provider.categories ?? []),
+    ...provider.services,
+  ]
+    .join(" ")
+    .toLowerCase()
+    .includes(normalizedQuery)
+}
+
+export default async function AdminProvidersPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{
+    filter?: string
+    page?: string
+    q?: string
+  }>
+}) {
+  const params = await searchParams
+  const { filter, page, q } = normalizeAdminListSearchParams(
+    params,
+    PROVIDER_FILTER_OPTIONS.map((option) => option.value)
+  )
   const providers = await getProviders()
-  const visibleProviders = providers.slice(0, ADMIN_PROVIDERS_LIMIT)
-  const hiddenCount = Math.max(providers.length - visibleProviders.length, 0)
+  const filteredProviders = providers.filter((provider) => {
+    const matchesFilter =
+      filter === "all" ||
+      (filter === "verified" && provider.verified) ||
+      (filter === "pending" && !provider.verified)
+
+    return matchesFilter && providerMatchesQuery(provider, q)
+  })
+  const {
+    end,
+    page: currentPage,
+    start,
+    totalPages,
+    visibleItems: visibleProviders,
+  } = pageItems(filteredProviders, page, ADMIN_PROVIDERS_LIMIT)
   const verifiedCount = providers.filter((provider) => provider.verified).length
   const pendingCount = providers.length - verifiedCount
+  const hasActiveFilters = Boolean(q) || filter !== "all"
 
   return (
     <AdminShell
@@ -58,6 +116,16 @@ export default async function AdminProvidersPage() {
           </Card>
         ))}
       </div>
+
+      <AdminListControls
+        action="/admin/providers"
+        filterLabel="Estado"
+        filterOptions={PROVIDER_FILTER_OPTIONS}
+        filterValue={filter}
+        resultLabel={`${filteredProviders.length} de ${providers.length} proveedores`}
+        searchPlaceholder="Buscar por nombre, categoría, zona o servicio..."
+        searchValue={q}
+      />
 
       {visibleProviders.length ? (
         <>
@@ -164,18 +232,16 @@ export default async function AdminProvidersPage() {
             </Table>
           </div>
 
-          {hiddenCount ? (
-            <Card size="sm">
-              <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Mostrando {visibleProviders.length} de {providers.length}
-                  proveedores. La siguiente etapa debe agregar búsqueda por
-                  nombre, categoría y estado.
-                </p>
-                <Badge variant="outline">{hiddenCount} fuera de vista</Badge>
-              </CardContent>
-            </Card>
-          ) : null}
+          <AdminPagination
+            basePath="/admin/providers"
+            end={end}
+            page={currentPage}
+            pageSize={ADMIN_PROVIDERS_LIMIT}
+            params={{ filter, page: String(currentPage), q }}
+            start={start}
+            totalItems={filteredProviders.length}
+            totalPages={totalPages}
+          />
         </>
       ) : (
         <Empty className="border border-border/70 bg-card">
@@ -183,10 +249,15 @@ export default async function AdminProvidersPage() {
             <EmptyMedia variant="icon">
               <WrenchIcon />
             </EmptyMedia>
-            <EmptyTitle>No hay proveedores importados</EmptyTitle>
+            <EmptyTitle>
+              {hasActiveFilters
+                ? "No hay proveedores con esos filtros"
+                : "No hay proveedores importados"}
+            </EmptyTitle>
             <EmptyDescription>
-              Cuando Firebase devuelva usuarios proveedores, aparecerán aquí con
-              estado de verificación y acciones operativas.
+              {hasActiveFilters
+                ? "Ajusta la búsqueda o limpia los filtros para volver a todos los proveedores."
+                : "Cuando Firebase devuelva usuarios proveedores, aparecerán aquí con estado de verificación y acciones operativas."}
             </EmptyDescription>
           </EmptyHeader>
         </Empty>

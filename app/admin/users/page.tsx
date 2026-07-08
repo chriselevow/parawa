@@ -1,5 +1,11 @@
 import { UsersIcon } from "lucide-react"
 
+import {
+  AdminListControls,
+  AdminPagination,
+  normalizeAdminListSearchParams,
+  pageItems,
+} from "@/components/admin-list-controls"
 import { AdminShell } from "@/components/admin-shell"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -28,15 +34,61 @@ import {
 import { getAdminData } from "@/lib/parawa-data"
 
 const ADMIN_USERS_LIMIT = 60
+const USER_FILTER_OPTIONS = [
+  { label: "Todos", value: "all" },
+  { label: "Clientes", value: "client" },
+  { label: "Proveedores", value: "provider" },
+  { label: "Activos", value: "active" },
+  { label: "Suspendidos", value: "suspended" },
+]
 
-export default async function AdminUsersPage() {
+type AdminUserRow = Awaited<
+  ReturnType<typeof getAdminData>
+>["adminUsers"][number]
+
+function userMatchesQuery(user: AdminUserRow, query: string) {
+  if (!query) return true
+  const normalizedQuery = query.toLowerCase()
+
+  return [user.id, user.name, user.email, user.role, user.status, user.joined]
+    .join(" ")
+    .toLowerCase()
+    .includes(normalizedQuery)
+}
+
+export default async function AdminUsersPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{
+    filter?: string
+    page?: string
+    q?: string
+  }>
+}) {
+  const params = await searchParams
+  const { filter, page, q } = normalizeAdminListSearchParams(
+    params,
+    USER_FILTER_OPTIONS.map((option) => option.value)
+  )
   const { adminUsers } = await getAdminData()
-  const visibleUsers = adminUsers.slice(0, ADMIN_USERS_LIMIT)
-  const hiddenCount = Math.max(adminUsers.length - visibleUsers.length, 0)
+  const filteredUsers = adminUsers.filter((user) => {
+    const matchesFilter =
+      filter === "all" || user.role === filter || user.status === filter
+
+    return matchesFilter && userMatchesQuery(user, q)
+  })
+  const {
+    end,
+    page: currentPage,
+    start,
+    totalPages,
+    visibleItems: visibleUsers,
+  } = pageItems(filteredUsers, page, ADMIN_USERS_LIMIT)
   const clientCount = adminUsers.filter((user) => user.role === "client").length
   const providerCount = adminUsers.filter(
     (user) => user.role === "provider"
   ).length
+  const hasActiveFilters = Boolean(q) || filter !== "all"
 
   return (
     <AdminShell
@@ -58,6 +110,16 @@ export default async function AdminUsersPage() {
           </Card>
         ))}
       </div>
+
+      <AdminListControls
+        action="/admin/users"
+        filterLabel="Rol o estado"
+        filterOptions={USER_FILTER_OPTIONS}
+        filterValue={filter}
+        resultLabel={`${filteredUsers.length} de ${adminUsers.length} usuarios`}
+        searchPlaceholder="Buscar por nombre, correo, rol o ID..."
+        searchValue={q}
+      />
 
       {visibleUsers.length ? (
         <>
@@ -155,18 +217,16 @@ export default async function AdminUsersPage() {
             </Table>
           </div>
 
-          {hiddenCount ? (
-            <Card size="sm">
-              <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Mostrando {visibleUsers.length} de {adminUsers.length}
-                  usuarios. La siguiente etapa debe agregar búsqueda por nombre,
-                  correo, rol y estado.
-                </p>
-                <Badge variant="outline">{hiddenCount} fuera de vista</Badge>
-              </CardContent>
-            </Card>
-          ) : null}
+          <AdminPagination
+            basePath="/admin/users"
+            end={end}
+            page={currentPage}
+            pageSize={ADMIN_USERS_LIMIT}
+            params={{ filter, page: String(currentPage), q }}
+            start={start}
+            totalItems={filteredUsers.length}
+            totalPages={totalPages}
+          />
         </>
       ) : (
         <Empty className="border border-border/70 bg-card">
@@ -174,10 +234,15 @@ export default async function AdminUsersPage() {
             <EmptyMedia variant="icon">
               <UsersIcon />
             </EmptyMedia>
-            <EmptyTitle>No hay usuarios importados</EmptyTitle>
+            <EmptyTitle>
+              {hasActiveFilters
+                ? "No hay usuarios con esos filtros"
+                : "No hay usuarios importados"}
+            </EmptyTitle>
             <EmptyDescription>
-              Cuando Firebase devuelva usuarios, aparecerán aquí con rol, estado
-              y fecha de registro.
+              {hasActiveFilters
+                ? "Ajusta la búsqueda o limpia los filtros para volver a todos los usuarios."
+                : "Cuando Firebase devuelva usuarios, aparecerán aquí con rol, estado y fecha de registro."}
             </EmptyDescription>
           </EmptyHeader>
         </Empty>

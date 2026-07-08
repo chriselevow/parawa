@@ -47,6 +47,9 @@
   full admin booking rows now feed `/admin/bookings`, while bookings,
   providers, users, and discover results render bounded first pages with total
   counts, hidden-count notices, wrapping table cells, and empty states.
+- Added URL-backed admin list controls for bookings, providers, and users:
+  search, filter, clear, and pagination now preserve state through query params
+  and browser navigation.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -62,6 +65,11 @@
   `/admin/bookings`, `/admin/providers`, `/admin/users`, and `/discover`, with
   `0` page-level horizontal overflow; `/admin/verifications` also passed at
   `390x844`.
+- URL-backed admin controls passed filtered/paginated smoke checks at `390x844`
+  and `1280x900` for `/admin/bookings?filter=pending&q=PAR&page=1`,
+  `/admin/providers?filter=verified&q=a&page=1`, and
+  `/admin/users?filter=provider&q=a&page=1`; the filtered empty state also
+  passed on `/admin/users?filter=client&q=zzzz-no-user&page=1`.
 
 ## Final Result
 

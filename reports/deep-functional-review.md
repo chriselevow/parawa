@@ -53,6 +53,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 14. Admin and discover list surfaces could over-render Firebase-sized datasets.
     - Fix: Added full admin booking rows plus bounded first pages, totals, hidden-count notices, wrapping cells, and empty states for admin bookings, providers, users, verifications, and discover results.
 
+15. Admin first-page lists needed real controls.
+    - Fix: Added query-param search, filters, reset, and pagination for admin bookings, providers, and users so large Firebase collections can be navigated without leaving the current surface.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -83,9 +86,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
    - Current behavior: UI can normalize Firestore `users`, `services`, `bookings`, `reviews`, and `provider-slots` when a service account env is configured, then falls back to local mock data.
    - Needed: validate the normalized fields against more real records and add write paths per workflow.
 
-8. Admin list controls are still first-page only.
-   - Current behavior: large Firebase collections show capped first pages with counts and guidance.
-   - Needed: real search, filters, sorting, and pagination backed by query params or server queries.
+8. Admin list controls are still client-side over normalized reads.
+   - Current behavior: large Firebase collections support query-param search, filters, and pagination after the read-only adapter normalizes records.
+   - Needed: backend/server-query pagination and sorting once Firebase Auth and Firestore rules are in place.
 
 ## Responsive/Data-Fit Checks
 
@@ -102,6 +105,10 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
   `/admin/verifications`, and `/discover`; it also found no page-level
   horizontal overflow at `1280x900` on `/admin/bookings`, `/admin/providers`,
   `/admin/users`, and `/discover`.
+- Latest admin-control smoke check found search/filter/pagination controls and
+  `0` page-level horizontal overflow at `390x844` and `1280x900` on filtered
+  bookings, providers, and users URLs; it also verified a no-result filtered
+  users empty state.
 
 ## Recommended Next Step
 

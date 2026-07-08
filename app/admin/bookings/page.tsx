@@ -1,5 +1,11 @@
 import { CalendarDaysIcon } from "lucide-react"
 
+import {
+  AdminListControls,
+  AdminPagination,
+  normalizeAdminListSearchParams,
+  pageItems,
+} from "@/components/admin-list-controls"
 import { AdminShell } from "@/components/admin-shell"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -38,10 +44,27 @@ import {
 import { getAdminData } from "@/lib/parawa-data"
 
 const ADMIN_BOOKINGS_LIMIT = 40
+const BOOKING_FILTER_OPTIONS = [
+  { label: "Todos los estados", value: "all" },
+  { label: "Pendientes", value: "pending" },
+  { label: "Confirmadas", value: "accepted" },
+  { label: "Completadas", value: "completed" },
+  { label: "Canceladas", value: "cancelled" },
+]
 
 type AdminBookingRow = Awaited<
   ReturnType<typeof getAdminData>
 >["adminBookings"][number]
+
+function rowMatchesQuery(row: AdminBookingRow, query: string) {
+  if (!query) return true
+  const normalizedQuery = query.toLowerCase()
+
+  return [row.id, row.client, row.provider, row.service, row.status]
+    .join(" ")
+    .toLowerCase()
+    .includes(normalizedQuery)
+}
 
 function BookingDetailDialog({
   row,
@@ -104,16 +127,39 @@ function BookingDetailDialog({
   )
 }
 
-export default async function AdminBookingsPage() {
+export default async function AdminBookingsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{
+    filter?: string
+    page?: string
+    q?: string
+  }>
+}) {
+  const params = await searchParams
+  const { filter, page, q } = normalizeAdminListSearchParams(
+    params,
+    BOOKING_FILTER_OPTIONS.map((option) => option.value)
+  )
   const { adminBookings } = await getAdminData()
-  const visibleRows = adminBookings.slice(0, ADMIN_BOOKINGS_LIMIT)
-  const hiddenCount = Math.max(adminBookings.length - visibleRows.length, 0)
+  const filteredRows = adminBookings.filter((row) => {
+    const matchesFilter = filter === "all" || row.status === filter
+    return matchesFilter && rowMatchesQuery(row, q)
+  })
+  const {
+    end,
+    page: currentPage,
+    start,
+    totalPages,
+    visibleItems: visibleRows,
+  } = pageItems(filteredRows, page, ADMIN_BOOKINGS_LIMIT)
   const activeCount = adminBookings.filter(
     (row) => row.status === "accepted" || row.status === "pending"
   ).length
   const completedCount = adminBookings.filter(
     (row) => row.status === "completed"
   ).length
+  const hasActiveFilters = Boolean(q) || filter !== "all"
 
   return (
     <AdminShell
@@ -135,6 +181,16 @@ export default async function AdminBookingsPage() {
           </Card>
         ))}
       </div>
+
+      <AdminListControls
+        action="/admin/bookings"
+        filterLabel="Estado"
+        filterOptions={BOOKING_FILTER_OPTIONS}
+        filterValue={filter}
+        resultLabel={`${filteredRows.length} de ${adminBookings.length} reservas`}
+        searchPlaceholder="Buscar por cliente, proveedor, servicio o ID..."
+        searchValue={q}
+      />
 
       {visibleRows.length ? (
         <>
@@ -224,18 +280,16 @@ export default async function AdminBookingsPage() {
             </Table>
           </div>
 
-          {hiddenCount ? (
-            <Card size="sm">
-              <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Mostrando {visibleRows.length} de {adminBookings.length}
-                  reservas. La siguiente etapa debe agregar filtros por estado,
-                  cliente, proveedor y fecha.
-                </p>
-                <Badge variant="outline">{hiddenCount} fuera de vista</Badge>
-              </CardContent>
-            </Card>
-          ) : null}
+          <AdminPagination
+            basePath="/admin/bookings"
+            end={end}
+            page={currentPage}
+            pageSize={ADMIN_BOOKINGS_LIMIT}
+            params={{ filter, page: String(currentPage), q }}
+            start={start}
+            totalItems={filteredRows.length}
+            totalPages={totalPages}
+          />
         </>
       ) : (
         <Empty className="border border-border/70 bg-card">
@@ -243,10 +297,15 @@ export default async function AdminBookingsPage() {
             <EmptyMedia variant="icon">
               <CalendarDaysIcon />
             </EmptyMedia>
-            <EmptyTitle>No hay reservas importadas</EmptyTitle>
+            <EmptyTitle>
+              {hasActiveFilters
+                ? "No hay reservas con esos filtros"
+                : "No hay reservas importadas"}
+            </EmptyTitle>
             <EmptyDescription>
-              Cuando Firebase devuelva reservas, aparecerán aquí con resumen,
-              estado y detalle operativo.
+              {hasActiveFilters
+                ? "Ajusta la búsqueda o limpia los filtros para volver a todas las reservas."
+                : "Cuando Firebase devuelva reservas, aparecerán aquí con resumen, estado y detalle operativo."}
             </EmptyDescription>
           </EmptyHeader>
         </Empty>
