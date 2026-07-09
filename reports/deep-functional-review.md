@@ -119,6 +119,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 36. Booking dialog still ended as a local-only confirmation.
     - Fix: Added `/api/bookings` with Firestore booking document creation for Firebase client sessions, demo-session `202` non-persisted confirmations, unauthenticated client-login targeting, and dialog fields for future date/time, address, notes, selected service, generated code, and Firestore/demo state.
 
+37. Provider accept/reject actions still ended as local-only confirmations.
+    - Fix: Added `/api/bookings/[id]/status` with Firestore booking status updates for Firebase provider/admin sessions, provider ownership checks, demo-session `202` confirmations, and mobile-safe accept/reject dialog result states.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is connected as a first bridge, but not yet production-grade.
@@ -126,8 +129,8 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
    - Needed: Firebase Admin session-cookie verification or equivalent token verification on protected requests, token refresh/revocation handling, role claims/rules alignment, and production session expiry behavior.
 
 2. Writes are not persisted.
-   - Current behavior: booking creation has a Firestore write path for Firebase client sessions and a clear demo fallback. Review, provider request, availability, services, portfolio, admin verification/provider/user management, chat text, and chat attachment states are still local demo flows with confirmation UI.
-   - Needed: verify booking creation against a real Firebase Auth client account, then add update booking status, create review, and create chat/message records.
+   - Current behavior: booking creation and provider accept/reject status changes have Firestore write paths for Firebase sessions and clear demo fallbacks. Review, availability, services, portfolio, admin verification/provider/user management, chat text, and chat attachment states are still local demo flows with confirmation UI.
+   - Needed: verify booking creation/status updates against real Firebase Auth test accounts, then add create review and chat/message records.
 
 3. Client booking ownership still depends on app cookies.
    - Current behavior: `/bookings`, booking detail, and client chats filter by the active `parawa_user_id`; real Firebase login now sets this from the Firebase UID, while demo login sets an example UID.
@@ -139,8 +142,8 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
    - Needed: decide whether to add `threads`/`messages` collections or reuse an existing source not yet identified.
 
 5. Provider dashboard uses read-derived metrics but not operational writes.
-   - Current behavior: when Firebase env is configured, dashboard metrics come from normalized bookings/providers; active requests support client-side search, filters, and pagination; service and agenda lists render without hidden caps; provider-slot summaries now render in a compact availability card when the selected provider has matching slot docs; provider action buttons now open contextual dialogs with staged confirmations.
-   - Needed: accept/reject booking writes, availability edits, and provider profile updates.
+   - Current behavior: when Firebase env is configured, dashboard metrics come from normalized bookings/providers; active requests support client-side search, filters, and pagination; service and agenda lists render without hidden caps; provider-slot summaries now render in a compact availability card when the selected provider has matching slot docs; accept/reject request dialogs now have a Firestore status update path with demo fallback.
+   - Needed: live write QA for accept/reject, availability edits, and provider profile updates.
 
 6. Storage assets are only partially rendered.
    - Current Firebase Storage has provider/service assets.

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react"
 import {
+  AlertCircleIcon,
   BadgeCheckIcon,
   CalendarDaysIcon,
   CheckCircle2Icon,
@@ -31,6 +32,7 @@ import { cn } from "@/lib/utils"
 
 export type ProviderActionRequest = {
   id: string
+  providerId?: string
   client: string
   service: string
   serviceCount?: number
@@ -59,6 +61,14 @@ type ProviderActionDialogProps = {
   triggerSize?: "sm" | "lg"
   triggerVariant?: "default" | "outline" | "ghost"
   disabled?: boolean
+}
+
+type BookingStatusResponse = {
+  bookingId?: string
+  error?: string
+  message?: string
+  persisted?: boolean
+  status?: string
 }
 
 const actionCopy: Record<
@@ -183,11 +193,15 @@ function RequestSummary({ request }: { request: ProviderActionRequest }) {
 
 function ActionBody({
   kind,
+  onRejectReasonChange,
   providerName,
+  rejectReason,
   request,
 }: {
   kind: ProviderActionKind
+  onRejectReasonChange?: (value: string) => void
   providerName?: string
+  rejectReason?: string
   request?: ProviderActionRequest
 }) {
   const quickReplies = useMemo(
@@ -210,6 +224,8 @@ function ActionBody({
             <Textarea
               id={`reject-${request.id}`}
               rows={3}
+              value={rejectReason}
+              onChange={(event) => onRejectReasonChange?.(event.target.value)}
               placeholder="Ej. horario no disponible, cliente fuera de zona, falta información..."
             />
           </div>
@@ -370,12 +386,65 @@ export function ProviderActionDialog({
   disabled = false,
 }: ProviderActionDialogProps) {
   const copy = actionCopy[kind]
+  const isBookingStatusAction = Boolean(
+    request && (kind === "accept" || kind === "reject")
+  )
+  const targetStatus = kind === "accept" ? "accepted" : "cancelled"
   const [submitted, setSubmitted] = useState(false)
+  const [result, setResult] = useState<BookingStatusResponse | null>(null)
+  const [error, setError] = useState<BookingStatusResponse | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [rejectReason, setRejectReason] = useState("")
+
+  async function submitAction() {
+    setError(null)
+
+    if (!isBookingStatusAction || !request) {
+      setSubmitted(true)
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch(`/api/bookings/${request.id}/status`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          action: kind,
+          note: rejectReason,
+          providerId: request.providerId,
+          status: targetStatus,
+        }),
+      })
+      const json = (await response.json()) as BookingStatusResponse
+
+      if (!response.ok && response.status !== 202) {
+        setError(json)
+        return
+      }
+
+      setResult(json)
+      setSubmitted(true)
+    } catch {
+      setError({
+        error: "No pudimos actualizar la reserva. Intenta nuevamente.",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <Dialog
       onOpenChange={(open) => {
-        if (!open) setSubmitted(false)
+        if (!open) {
+          setError(null)
+          setResult(null)
+          setSubmitted(false)
+          setRejectReason("")
+        }
       }}
     >
       <DialogTrigger
@@ -399,8 +468,28 @@ export function ProviderActionDialog({
                 <CheckCircle2Icon />
               </div>
               <DialogTitle>{copy.done}</DialogTitle>
-              <DialogDescription>{copy.doneDescription}</DialogDescription>
+              <DialogDescription>
+                {result?.message ?? copy.doneDescription}
+              </DialogDescription>
             </DialogHeader>
+            {isBookingStatusAction ? (
+              <div className="grid gap-3 rounded-xl border bg-muted/35 p-3 text-sm">
+                {request ? <RequestSummary request={request} /> : null}
+                <div className="flex flex-wrap gap-1.5">
+                  {result?.persisted ? (
+                    <Badge>Firestore</Badge>
+                  ) : (
+                    <Badge variant="outline">Demo</Badge>
+                  )}
+                  {result?.status ? (
+                    <Badge variant="secondary">{result.status}</Badge>
+                  ) : null}
+                  {result?.bookingId ? (
+                    <Badge variant="outline">{result.bookingId}</Badge>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
             <DialogFooter>
               <DialogClose render={<Button className="w-full sm:flex-1" />}>
                 Listo
@@ -415,9 +504,26 @@ export function ProviderActionDialog({
             </DialogHeader>
             <ActionBody
               kind={kind}
+              onRejectReasonChange={setRejectReason}
               providerName={providerName}
+              rejectReason={rejectReason}
               request={request}
             />
+            {error ? (
+              <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm">
+                <div className="flex items-start gap-2">
+                  <AlertCircleIcon className="mt-0.5 size-4 text-destructive" />
+                  <div className="min-w-0">
+                    <p className="font-semibold text-destructive">
+                      No se pudo actualizar
+                    </p>
+                    <p className="break-anywhere mt-1 text-muted-foreground">
+                      {error.error ?? "Revisa tu sesión e intenta nuevamente."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
             <DialogFooter className="flex-col gap-2 sm:flex-row">
               <DialogClose
                 render={
@@ -428,9 +534,10 @@ export function ProviderActionDialog({
               </DialogClose>
               <Button
                 className="w-full sm:flex-1"
-                onClick={() => setSubmitted(true)}
+                disabled={isSubmitting}
+                onClick={submitAction}
               >
-                {copy.action}
+                {isSubmitting ? "Guardando..." : copy.action}
               </Button>
             </DialogFooter>
           </>

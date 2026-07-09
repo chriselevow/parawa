@@ -399,3 +399,47 @@ export async function createFirebaseDocument<T = Record<string, unknown>>(
     (await response.json()) as FirestoreDocument
   ) as FirebaseDocument<T> | null
 }
+
+export async function updateFirebaseDocument<T = Record<string, unknown>>(
+  collectionId: string,
+  documentId: string,
+  data: Record<string, FirestoreWriteValue | undefined>
+): Promise<FirebaseDocument<T> | null> {
+  const serviceAccount = parseServiceAccount()
+  if (!serviceAccount || !documentId) return null
+
+  const projectId =
+    process.env.PARAWA_FIREBASE_PROJECT_ID ??
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ??
+    serviceAccount.project_id
+  const token = await getAccessToken(serviceAccount)
+  const url = new URL(
+    `${firestoreRoot(projectId)}/${collectionId}/${documentId}`
+  )
+
+  for (const fieldPath of Object.keys(data)) {
+    if (data[fieldPath] !== undefined) {
+      url.searchParams.append("updateMask.fieldPaths", fieldPath)
+    }
+  }
+
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      authorization: `Bearer ${token}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ fields: encodeFields(data, projectId) }),
+    cache: "no-store",
+  })
+
+  if (!response.ok) {
+    throw new Error(
+      `Firestore ${collectionId}/${documentId} update failed with ${response.status}`
+    )
+  }
+
+  return decodeDocument(
+    (await response.json()) as FirestoreDocument
+  ) as FirebaseDocument<T> | null
+}

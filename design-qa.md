@@ -131,6 +131,10 @@
   service, future date/time, address, and notes to `/api/bookings`; Firebase
   client sessions can create a Firestore booking document, while demo sessions
   receive an explicit non-persisted confirmation.
+- Added the provider booking-status write path: accept/reject request dialogs
+  now call `/api/bookings/[id]/status`, Firebase provider sessions can update
+  the Firestore booking status, and demo provider sessions receive explicit
+  non-persisted confirmations.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -263,6 +267,12 @@
   on `/providers/maria-nails` confirmed the service picker, address/notes
   fields, future `Vie 10 Jul` date, demo confirmation, generated code, and
   page overflow `0`; the old `Vie 23 May` copy was absent.
+- Booking-status checks covered `/api/bookings/b1/status` without making a live
+  write: invalid payload returned `400`, unauthenticated update returned `401`,
+  provider mismatch returned `403`, and a demo provider session returned `202`
+  with `persisted:false`. Mobile provider QA at `390x844` confirmed the
+  `Aceptar` dialog submits through the new path, shows `Solicitud aceptada`,
+  carries demo/Firebase-write-path status copy, and keeps page overflow `0`.
 
 ## Final Result
 

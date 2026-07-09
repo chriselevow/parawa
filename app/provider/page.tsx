@@ -364,6 +364,7 @@ export default async function ProviderDashboardPage({
   const requestRows: ProviderRequestRow[] = visibleRequestBookings.map(
     (booking) => ({
       id: booking.id,
+      providerId: booking.providerId,
       client: booking.clientName,
       service: booking.service,
       serviceCount: booking.serviceCount,
