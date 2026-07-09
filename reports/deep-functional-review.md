@@ -101,6 +101,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 30. Provider dashboard actions looked operational but were inert.
     - Fix: Added reusable provider action dialogs for accepting, rejecting, and chatting on requests, plus auto-order, availability, services, and portfolio actions. Each dialog carries Firebase-derived context, has mobile-safe layout, and ends in a clear staged confirmation for the eventual write path.
 
+31. Admin management actions looked operational but were inert.
+    - Fix: Added reusable admin action dialogs for verification approval/rejection/document review, provider approval/suspension, and user detail/suspension/reactivation. Dialogs carry Firebase-derived identifiers and metadata, wrap long values safely, and end in staged confirmations for the eventual write path.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -108,7 +111,7 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
    - Needed: Firebase Auth sign-in, role claims/profile lookup, protected routes based on real user identity.
 
 2. Writes are not persisted.
-   - Current behavior: booking, review, provider request, availability, services, portfolio, and message states are local demo flows with confirmation UI.
+   - Current behavior: booking, review, provider request, availability, services, portfolio, admin verification/provider/user management, and message states are local demo flows with confirmation UI.
    - Needed: create booking, update booking status, create review, and create chat/message records.
 
 3. Client booking ownership is not filtered by authenticated identity.
@@ -135,7 +138,7 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 
 8. Admin list controls are still client-side over normalized reads.
    - Current behavior: large Firebase collections support query-param search, filters, and pagination after the read-only adapter normalizes records, including bookings, providers, users, reviews, services, enterprises, quality, and verifications.
-   - Needed: backend/server-query pagination and sorting once Firebase Auth and Firestore rules are in place.
+   - Needed: backend/server-query pagination, sorting, and persisted admin action writes once Firebase Auth and Firestore rules are in place.
 
 9. Client booking controls are still client-side over normalized reads.
    - Current behavior: `/bookings` filters and paginates after the read-only adapter normalizes the selected demo user's reservations.
@@ -276,6 +279,13 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
   availability/services/portfolio dialogs opened with context, submit/close
   states worked, page and dialog overflow stayed at `0`, and console error logs
   were empty.
+- Admin action dialogs now cover verification approval/rejection/document
+  review, provider approval/suspension, and user detail/suspension/
+  reactivation with Firebase-aware staged confirmations. Browser checks passed
+  on `/admin/users?q=Diego` and `/admin/verifications?q=Usuario%209TZwgH` at
+  `390x844`, plus `/admin/providers?q=Diego` at `1280x900`: long Firebase
+  phone/id values wrapped, dialogs opened/submitted/closed, page and dialog
+  overflow stayed at `0`, and console error logs were empty.
 
 ## Recommended Next Step
 

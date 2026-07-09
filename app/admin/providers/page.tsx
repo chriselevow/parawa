@@ -7,9 +7,13 @@ import {
   normalizeAdminListSearchParams,
   pageItems,
 } from "@/components/admin-list-controls"
+import {
+  AdminActionDialog,
+  type AdminActionEntity,
+} from "@/components/admin-action-dialog"
 import { AdminShell } from "@/components/admin-shell"
 import { Badge } from "@/components/ui/badge"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -60,6 +64,26 @@ function providerMatchesQuery(provider: ProviderRow, query: string) {
     .join(" ")
     .toLowerCase()
     .includes(normalizedQuery)
+}
+
+function providerEntity(provider: ProviderRow): AdminActionEntity {
+  return {
+    id: provider.id,
+    title: provider.name,
+    subtitle: `${provider.category} · ${provider.area}`,
+    badges: [
+      provider.verified ? "Verificado" : "Pendiente",
+      `${provider.rating} rating`,
+    ],
+    details: [
+      ["ID", provider.id],
+      ["Categoría", provider.category],
+      ["Zona", provider.area],
+      ["Reseñas", provider.reviews],
+      ["Precio desde", `$${provider.priceFrom}`],
+      ["Servicios", provider.services.length],
+    ],
+  }
 }
 
 export default async function AdminProvidersPage({
@@ -167,10 +191,17 @@ export default async function AdminProvidersPage({
                   >
                     Ver perfil
                   </Link>
-                  {!p.verified ? <Button size="sm">Aprobar</Button> : null}
-                  <Button size="sm" variant="ghost">
-                    Suspender
-                  </Button>
+                  {!p.verified ? (
+                    <AdminActionDialog
+                      kind="approve"
+                      entity={providerEntity(p)}
+                    />
+                  ) : null}
+                  <AdminActionDialog
+                    kind="suspend"
+                    entity={providerEntity(p)}
+                    triggerVariant="ghost"
+                  />
                 </CardFooter>
               </Card>
             ))}
@@ -220,10 +251,16 @@ export default async function AdminProvidersPage({
                         >
                           Ver
                         </Link>
-                        {!p.verified && <Button size="sm">Aprobar</Button>}
-                        <Button size="sm" variant="outline">
-                          Suspender
-                        </Button>
+                        {!p.verified ? (
+                          <AdminActionDialog
+                            kind="approve"
+                            entity={providerEntity(p)}
+                          />
+                        ) : null}
+                        <AdminActionDialog
+                          kind="suspend"
+                          entity={providerEntity(p)}
+                        />
                       </div>
                     </TableCell>
                   </TableRow>

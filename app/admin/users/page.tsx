@@ -6,9 +6,12 @@ import {
   normalizeAdminListSearchParams,
   pageItems,
 } from "@/components/admin-list-controls"
+import {
+  AdminActionDialog,
+  type AdminActionEntity,
+} from "@/components/admin-action-dialog"
 import { AdminShell } from "@/components/admin-shell"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -54,6 +57,22 @@ function userMatchesQuery(user: AdminUserRow, query: string) {
     .join(" ")
     .toLowerCase()
     .includes(normalizedQuery)
+}
+
+function userEntity(user: AdminUserRow): AdminActionEntity {
+  return {
+    id: user.id,
+    title: user.name,
+    subtitle: user.email,
+    badges: [user.role, user.status],
+    details: [
+      ["ID", user.id],
+      ["Email", user.email],
+      ["Rol", user.role],
+      ["Estado", user.status],
+      ["Registro", user.joined],
+    ],
+  }
 }
 
 export default async function AdminUsersPage({
@@ -150,15 +169,18 @@ export default async function AdminUsersPage({
                   <Badge variant="outline">Registro {user.joined}</Badge>
                 </CardContent>
                 <CardFooter className="grid gap-2">
-                  <Button size="sm" variant="outline">
-                    Ver
-                  </Button>
+                  <AdminActionDialog kind="view" entity={userEntity(user)} />
                   {user.status === "active" ? (
-                    <Button size="sm" variant="ghost">
-                      Suspender
-                    </Button>
+                    <AdminActionDialog
+                      kind="suspend"
+                      entity={userEntity(user)}
+                      triggerVariant="ghost"
+                    />
                   ) : (
-                    <Button size="sm">Reactivar</Button>
+                    <AdminActionDialog
+                      kind="reactivate"
+                      entity={userEntity(user)}
+                    />
                   )}
                 </CardFooter>
               </Card>
@@ -200,16 +222,24 @@ export default async function AdminUsersPage({
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button size="sm" variant="ghost">
-                        Ver
-                      </Button>
-                      {user.status === "active" ? (
-                        <Button size="sm" variant="outline">
-                          Suspender
-                        </Button>
-                      ) : (
-                        <Button size="sm">Reactivar</Button>
-                      )}
+                      <div className="flex justify-end gap-2">
+                        <AdminActionDialog
+                          kind="view"
+                          entity={userEntity(user)}
+                          triggerVariant="ghost"
+                        />
+                        {user.status === "active" ? (
+                          <AdminActionDialog
+                            kind="suspend"
+                            entity={userEntity(user)}
+                          />
+                        ) : (
+                          <AdminActionDialog
+                            kind="reactivate"
+                            entity={userEntity(user)}
+                          />
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

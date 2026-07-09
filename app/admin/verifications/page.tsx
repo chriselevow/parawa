@@ -6,9 +6,12 @@ import {
   normalizeAdminListSearchParams,
   pageItems,
 } from "@/components/admin-list-controls"
+import {
+  AdminActionDialog,
+  type AdminActionEntity,
+} from "@/components/admin-action-dialog"
 import { AdminShell } from "@/components/admin-shell"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -57,6 +60,21 @@ function verificationMatchesFilter(item: VerificationRow, filter: string) {
   }
 
   return true
+}
+
+function verificationEntity(item: VerificationRow): AdminActionEntity {
+  return {
+    id: item.id,
+    title: item.name,
+    subtitle: item.category,
+    badges: [item.submitted],
+    details: [
+      ["ID", item.id],
+      ["Categoría", item.category],
+      ["Documentos", item.documents],
+      ["Enviado", item.submitted],
+    ],
+  }
 }
 
 export default async function AdminVerificationsPage({
@@ -141,23 +159,19 @@ export default async function AdminVerificationsPage({
                     </p>
                   </CardContent>
                   <CardFooter className="grid gap-2 sm:flex sm:flex-wrap">
-                    <Button size="sm" className="w-full sm:w-auto">
-                      Aprobar
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="w-full sm:w-auto"
-                    >
-                      Rechazar
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="w-full sm:w-auto"
-                    >
-                      Ver docs
-                    </Button>
+                    <AdminActionDialog
+                      kind="approve"
+                      entity={verificationEntity(item)}
+                    />
+                    <AdminActionDialog
+                      kind="reject"
+                      entity={verificationEntity(item)}
+                    />
+                    <AdminActionDialog
+                      kind="docs"
+                      entity={verificationEntity(item)}
+                      triggerVariant="ghost"
+                    />
                   </CardFooter>
                 </Card>
               ))}

@@ -109,6 +109,10 @@
 - Replaced inert provider dashboard actions with mobile-safe workflow dialogs:
   accept/reject/chat request actions, auto-order, availability, services, and
   portfolio now open contextual panels with Firebase-aware confirmation states.
+- Replaced inert admin action buttons with reusable workflow dialogs:
+  verifications, provider management, and user management now support
+  review/approve/reject/suspend/reactivate/detail states with Firebase-aware
+  confirmation copy.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -211,6 +215,12 @@
   services, and portfolio dialogs opened with request/profile context, submitted
   or closed correctly, dialog and page overflow stayed at `0`, and browser error
   logs were empty.
+- Admin action-dialog checks passed with live Firebase data: `/admin/users?q=Diego`
+  at `390x844` opened user detail and suspension dialogs with long phone/id
+  values; `/admin/verifications?q=Usuario%209TZwgH` at `390x844` opened document
+  review and approval dialogs; `/admin/providers?q=Diego` at `1280x900` opened
+  provider suspension. All checked dialogs and pages reported overflow `0`, and
+  browser error logs were empty.
 
 ## Final Result
 
