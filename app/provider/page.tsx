@@ -11,9 +11,7 @@ import {
   GaugeIcon,
   InboxIcon,
   MapPinIcon,
-  MessageCircleIcon,
   ShieldCheckIcon,
-  SparklesIcon,
   StarIcon,
   TrendingUpIcon,
   UserRoundCheckIcon,
@@ -26,9 +24,10 @@ import {
   normalizeAdminListSearchParams,
   pageItems,
 } from "@/components/admin-list-controls"
+import { ProviderActionDialog } from "@/components/provider-action-dialog"
 import { PrototypeShell } from "@/components/prototype-shell"
 import { Badge } from "@/components/ui/badge"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import {
   Card,
   CardAction,
@@ -514,14 +513,19 @@ export default async function ProviderDashboardPage({
                 <EyeIcon data-icon="inline-start" />
                 Ver perfil público
               </Link>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                <CalendarDaysIcon data-icon="inline-start" />
-                Editar disponibilidad
-              </Button>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                <MessageCircleIcon data-icon="inline-start" />
-                Responder chats
-              </Button>
+              <ProviderActionDialog
+                kind="availability"
+                providerName={providerProfile.business}
+                triggerSize="lg"
+                triggerClassName="w-full sm:w-auto"
+              />
+              <ProviderActionDialog
+                kind="chat"
+                providerName={providerProfile.business}
+                triggerLabel="Responder chats"
+                triggerSize="lg"
+                triggerClassName="w-full sm:w-auto"
+              />
             </div>
           </div>
 
@@ -635,14 +639,11 @@ export default async function ProviderDashboardPage({
                   </CardDescription>
                 </div>
                 <CardAction className="w-full sm:w-auto">
-                  <Button
-                    size="sm"
-                    variant="outline"
+                  <ProviderActionDialog
+                    kind="sort"
                     disabled={!activeBookings.length}
-                  >
-                    <SparklesIcon data-icon="inline-start" />
-                    Autoordenar
-                  </Button>
+                    triggerClassName="w-full sm:w-auto"
+                  />
                 </CardAction>
               </CardHeader>
               <CardContent className="flex flex-col gap-3">
@@ -693,28 +694,23 @@ export default async function ProviderDashboardPage({
                         </p>
                       </div>
                       <div className="grid gap-2 border-t border-border/70 pt-3 min-[420px]:grid-cols-3 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
-                        <Button
-                          size="sm"
-                          className="h-9 w-full rounded-lg px-3 shadow-sm sm:w-auto"
-                        >
-                          <CheckCircle2Icon data-icon="inline-start" />
-                          Aceptar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-9 w-full rounded-lg px-3 sm:w-auto"
-                        >
-                          <MessageCircleIcon data-icon="inline-start" />
-                          Chat
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-9 w-full rounded-lg px-2.5 text-muted-foreground sm:w-auto"
-                        >
-                          Rechazar
-                        </Button>
+                        <ProviderActionDialog
+                          kind="accept"
+                          request={req}
+                          triggerVariant="default"
+                          triggerClassName="h-9 rounded-lg px-3 shadow-sm"
+                        />
+                        <ProviderActionDialog
+                          kind="chat"
+                          request={req}
+                          triggerClassName="h-9 rounded-lg px-3"
+                        />
+                        <ProviderActionDialog
+                          kind="reject"
+                          request={req}
+                          triggerVariant="ghost"
+                          triggerClassName="h-9 rounded-lg px-2.5 text-muted-foreground"
+                        />
                       </div>
                     </div>
                   ))
@@ -877,15 +873,19 @@ export default async function ProviderDashboardPage({
               ))}
             </CardContent>
             <CardFooter className="grid gap-2 sm:flex sm:flex-wrap">
-              <Button size="sm" variant="outline" className="w-full sm:w-auto">
-                Editar servicios
-              </Button>
-              <Button size="sm" variant="outline" className="w-full sm:w-auto">
-                Horarios
-              </Button>
-              <Button size="sm" variant="outline" className="w-full sm:w-auto">
-                Portafolio
-              </Button>
+              <ProviderActionDialog
+                kind="services"
+                providerName={providerProfile.business}
+              />
+              <ProviderActionDialog
+                kind="availability"
+                providerName={providerProfile.business}
+                triggerLabel="Horarios"
+              />
+              <ProviderActionDialog
+                kind="portfolio"
+                providerName={providerProfile.business}
+              />
             </CardFooter>
           </Card>
 

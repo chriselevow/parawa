@@ -106,6 +106,9 @@
   reusable summaries, `/admin/reviews` provides search/filter/pagination with
   mobile cards and desktop tables, admin navigation includes `Reseñas`, and
   public provider profiles render real review cards instead of sample copy.
+- Replaced inert provider dashboard actions with mobile-safe workflow dialogs:
+  accept/reject/chat request actions, auto-order, availability, services, and
+  portfolio now open contextual panels with Firebase-aware confirmation states.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -203,6 +206,11 @@
   Firebase review counts, score/comment/punctuality fields, filters, filtered
   empty state, provider review search, and admin navigation rendered with
   `pageOverflow` at `0`; the old provider sample review copy was absent.
+- Provider action-dialog checks passed on `/provider` with live Firebase-derived
+  demo identity at `390x844` and `1280x900`: accept, chat, availability,
+  services, and portfolio dialogs opened with request/profile context, submitted
+  or closed correctly, dialog and page overflow stayed at `0`, and browser error
+  logs were empty.
 
 ## Final Result
 

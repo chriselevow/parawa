@@ -98,6 +98,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 29. Firebase reviews were not first-class UI data.
     - Fix: Added read-only review normalization for score, comment, anonymous customer state, booking, services, provider/customer names, punctuality, and date; added `/admin/reviews` with search/filter/pagination/mobile cards/desktop table; added admin navigation; and replaced provider-profile sample review copy with real Firebase review cards and search.
 
+30. Provider dashboard actions looked operational but were inert.
+    - Fix: Added reusable provider action dialogs for accepting, rejecting, and chatting on requests, plus auto-order, availability, services, and portfolio actions. Each dialog carries Firebase-derived context, has mobile-safe layout, and ends in a clear staged confirmation for the eventual write path.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -105,7 +108,7 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
    - Needed: Firebase Auth sign-in, role claims/profile lookup, protected routes based on real user identity.
 
 2. Writes are not persisted.
-   - Current behavior: booking, review, and message states are local demo flows.
+   - Current behavior: booking, review, provider request, availability, services, portfolio, and message states are local demo flows with confirmation UI.
    - Needed: create booking, update booking status, create review, and create chat/message records.
 
 3. Client booking ownership is not filtered by authenticated identity.
@@ -118,7 +121,7 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
    - Needed: decide whether to add `threads`/`messages` collections or reuse an existing source not yet identified.
 
 5. Provider dashboard uses read-derived metrics but not operational writes.
-   - Current behavior: when Firebase env is configured, dashboard metrics come from normalized bookings/providers; active requests support client-side search, filters, and pagination; service and agenda lists render without hidden caps; provider-slot summaries now render in a compact availability card when the selected provider has matching slot docs.
+   - Current behavior: when Firebase env is configured, dashboard metrics come from normalized bookings/providers; active requests support client-side search, filters, and pagination; service and agenda lists render without hidden caps; provider-slot summaries now render in a compact availability card when the selected provider has matching slot docs; provider action buttons now open contextual dialogs with staged confirmations.
    - Needed: accept/reject booking writes, availability edits, and provider profile updates.
 
 6. Storage assets are only partially rendered.
@@ -266,6 +269,13 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
   admin review counts/table/cards, filters, filtered result pagination,
   provider review cards, provider review empty state, and admin navigation
   rendered with `pageOverflow` at `0`; console error logs were empty.
+- Provider dashboard action dialogs now cover accept, reject, chat, auto-order,
+  availability, services, and portfolio flows with Firebase-aware staged
+  confirmations. Browser checks passed on `/provider` after provider demo login
+  at `390x844` and `1280x900`: action buttons rendered, accept/chat/
+  availability/services/portfolio dialogs opened with context, submit/close
+  states worked, page and dialog overflow stayed at `0`, and console error logs
+  were empty.
 
 ## Recommended Next Step
 
