@@ -11,6 +11,7 @@ import { statusLabel } from "@/lib/mock-data"
 import {
   getBooking,
   getBookingForClient,
+  getMessagesForThread,
   getMessageThreadsForClient,
   getProvider,
 } from "@/lib/parawa-data"
@@ -30,13 +31,15 @@ export default async function MessageThreadPage({
   if (!thread && !provider) notFound()
 
   const name = thread?.providerName ?? provider?.name ?? "Chat"
+  const providerId = thread?.providerId ?? provider?.id ?? id
   const booking = thread?.bookingId
     ? userId
       ? await getBookingForClient(thread.bookingId, userId)
       : await getBooking(thread.bookingId)
     : undefined
+  const persistedMessages = await getMessagesForThread(id, userId, providerId)
 
-  const messages: DemoMessage[] = [
+  const contextMessages: DemoMessage[] = [
     {
       from: "system",
       text: booking
@@ -49,6 +52,8 @@ export default async function MessageThreadPage({
         ? `${statusLabel(booking.status)} · ${booking.shortDate} · ${booking.time}.`
         : "Los mensajes reales se conectarán cuando exista el modelo de conversación.",
     },
+  ]
+  const demoMessages: DemoMessage[] = [
     { from: "them", text: "Hola, ¿qué servicio necesitas?", time: "2:14 PM" },
     {
       from: "me",
@@ -94,6 +99,9 @@ export default async function MessageThreadPage({
       time: "2:18 PM",
     },
   ]
+  const messages: DemoMessage[] = persistedMessages.length
+    ? [...contextMessages, ...persistedMessages]
+    : [...contextMessages, ...demoMessages]
 
   return (
     <PrototypeShell active="/messages">
@@ -109,10 +117,14 @@ export default async function MessageThreadPage({
 
       <MessageThreadDemo
         key={id}
+        bookingId={booking?.id}
         name={name}
         initialMessages={messages}
         booking={booking}
+        providerId={providerId}
         providerHref={provider ? `/providers/${provider.id}` : undefined}
+        providerName={name}
+        threadId={id}
       />
 
       {provider && (

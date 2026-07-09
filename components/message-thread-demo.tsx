@@ -3,12 +3,14 @@
 import { FormEvent, useRef, useState } from "react"
 import Link from "next/link"
 import {
+  AlertCircleIcon,
   CalendarDaysIcon,
   CheckCircle2Icon,
   ChevronUpIcon,
   CreditCardIcon,
   FileTextIcon,
   ImageIcon,
+  Loader2Icon,
   MapPinIcon,
   PaperclipIcon,
   SendIcon,
@@ -38,6 +40,16 @@ export type DemoMessage = {
   text: string
   time?: string
   status?: "sent" | "read"
+  delivery?: "demo" | "firebase"
+  messageId?: string
+}
+
+type MessageResult = {
+  error?: string
+  loginHref?: string
+  message?: string
+  messageId?: string
+  persisted?: boolean
 }
 
 const MESSAGE_THREAD_PAGE_SIZE = 8
@@ -63,21 +75,32 @@ const attachmentOptions = [
 ]
 
 export function MessageThreadDemo({
+  bookingId,
   name,
   initialMessages,
   booking,
+  providerId,
   providerHref,
+  providerName,
+  threadId,
 }: {
+  bookingId?: string
   name: string
   initialMessages: DemoMessage[]
   booking?: Booking
+  providerId: string
   providerHref?: string
+  providerName: string
+  threadId: string
 }) {
   const [messages, setMessages] = useState(initialMessages)
   const [visibleMessageCount, setVisibleMessageCount] = useState(() =>
     Math.min(MESSAGE_THREAD_PAGE_SIZE, initialMessages.length)
   )
   const [draft, setDraft] = useState("")
+  const [sendError, setSendError] = useState<MessageResult | null>(null)
+  const [isSending, setIsSending] = useState(false)
+  const [isAttaching, setIsAttaching] = useState(false)
   const [attachmentOpen, setAttachmentOpen] = useState(false)
   const [selectedAttachment, setSelectedAttachment] = useState(
     attachmentOptions[0].id
@@ -92,42 +115,116 @@ export function MessageThreadDemo({
   const hiddenMessageCount = Math.max(messages.length - visibleCount, 0)
   const visibleMessages = messages.slice(hiddenMessageCount)
 
-  function sendMessage(event: FormEvent<HTMLFormElement>) {
+  function messageFromResult(text: string, result: MessageResult): DemoMessage {
+    return {
+      delivery: result.persisted ? "firebase" : "demo",
+      from: "me",
+      messageId: result.messageId,
+      status: "sent",
+      text,
+      time: "Ahora",
+    }
+  }
+
+  async function postMessage(payload: {
+    attachmentKind?: string
+    attachmentLabel?: string
+    text?: string
+    type: "text" | "attachment"
+  }) {
+    const response = await fetch("/api/messages", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        ...payload,
+        bookingId,
+        providerId,
+        providerName,
+        threadId,
+      }),
+    })
+    const json = (await response.json().catch(() => ({}))) as MessageResult
+
+    if (!response.ok) {
+      throw json
+    }
+
+    return json
+  }
+
+  async function sendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const text = draft.trim()
     if (!text) return
 
-    const nextMessages: DemoMessage[] = [
-      { from: "me", text, time: "Ahora", status: "sent" },
-      {
-        from: "them",
-        text: "Recibido. Te confirmo disponibilidad en unos minutos.",
-        time: "Ahora",
-      },
-    ]
+    setIsSending(true)
+    setSendError(null)
 
-    setMessages((current) => [...current, ...nextMessages])
-    setVisibleMessageCount((count) => count + nextMessages.length)
-    setDraft("")
-    requestAnimationFrame(() => inputRef.current?.focus())
+    try {
+      const result = await postMessage({ text, type: "text" })
+      const nextMessages: DemoMessage[] = [messageFromResult(text, result)]
+
+      if (!result.persisted) {
+        nextMessages.push({
+          from: "them",
+          text: "Recibido. Te confirmo disponibilidad en unos minutos.",
+          time: "Ahora",
+        })
+      }
+
+      setMessages((current) => [...current, ...nextMessages])
+      setVisibleMessageCount((count) => count + nextMessages.length)
+      setDraft("")
+      requestAnimationFrame(() => inputRef.current?.focus())
+    } catch (error) {
+      setSendError(
+        typeof error === "object" && error
+          ? (error as MessageResult)
+          : { error: "No se pudo enviar el mensaje." }
+      )
+    } finally {
+      setIsSending(false)
+    }
   }
 
-  function addAttachmentMessage() {
+  async function addAttachmentMessage() {
     const option =
       attachmentOptions.find(
         (attachment) => attachment.id === selectedAttachment
       ) ?? attachmentOptions[0]
-    const nextMessage: DemoMessage = {
-      from: "me",
-      text: `Adjunto preparado: ${option.label}. En Firebase se subirá a Storage y se guardará en el hilo real.`,
-      time: "Ahora",
-      status: "sent",
-    }
 
-    setMessages((current) => [...current, nextMessage])
-    setVisibleMessageCount((count) => count + 1)
-    setAttachmentOpen(false)
-    requestAnimationFrame(() => inputRef.current?.focus())
+    setIsAttaching(true)
+    setSendError(null)
+
+    try {
+      const result = await postMessage({
+        attachmentKind: option.id,
+        attachmentLabel: option.label,
+        text: `Adjunto preparado: ${option.label}.`,
+        type: "attachment",
+      })
+      const nextMessage = messageFromResult(
+        `Adjunto preparado: ${option.label}. ${
+          result.persisted
+            ? "Metadatos guardados en Firestore; falta conectar Storage para el archivo real."
+            : "Entra con Firebase para guardar el mensaje y subir el archivo real."
+        }`,
+        result
+      )
+
+      setMessages((current) => [...current, nextMessage])
+      setVisibleMessageCount((count) => count + 1)
+      setAttachmentOpen(false)
+      requestAnimationFrame(() => inputRef.current?.focus())
+    } catch (error) {
+      setSendError(
+        typeof error === "object" && error
+          ? (error as MessageResult)
+          : { error: "No se pudo preparar el adjunto." }
+      )
+    } finally {
+      setIsAttaching(false)
+    }
   }
 
   return (
@@ -144,7 +241,7 @@ export function MessageThreadDemo({
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground">
-            {messages.length} mensajes · demo local de esta sesión
+            {messages.length} mensajes · Firebase-ready
           </p>
         </div>
         <div className="grid gap-2 sm:flex sm:flex-wrap sm:justify-end">
@@ -267,6 +364,20 @@ export function MessageThreadDemo({
                 >
                   {message.time}
                   {message.status === "sent" ? " · Enviado" : ""}
+                  {message.delivery === "firebase" ? " · Firestore" : ""}
+                  {message.delivery === "demo" ? " · Demo" : ""}
+                </p>
+              ) : null}
+              {message.messageId ? (
+                <p
+                  className={cn(
+                    "break-anywhere mt-1 text-[0.65rem]",
+                    message.from === "me"
+                      ? "text-primary-foreground/65"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  ID: {message.messageId}
                 </p>
               ) : null}
             </div>
@@ -351,9 +462,8 @@ export function MessageThreadDemo({
                   })}
                 </div>
                 <div className="rounded-xl border border-primary/15 bg-primary/5 p-3 text-sm text-muted-foreground">
-                  La vista mantiene dimensiones estables para archivos largos,
-                  nombres extensos y previsualizaciones futuras sin romper
-                  móvil.
+                  Esta acción guarda metadatos del adjunto en el hilo. La carga
+                  binaria a Firebase Storage queda como el siguiente paso.
                 </div>
               </div>
               <DialogFooter className="flex-col gap-2 sm:flex-row">
@@ -365,10 +475,22 @@ export function MessageThreadDemo({
                   Cancelar
                 </DialogClose>
                 <Button
+                  type="button"
                   className="w-full sm:flex-1"
-                  onClick={addAttachmentMessage}
+                  disabled={isAttaching}
+                  onClick={() => void addAttachmentMessage()}
                 >
-                  Adjuntar a conversación
+                  {isAttaching ? (
+                    <>
+                      <Loader2Icon
+                        data-icon="inline-start"
+                        className="animate-spin"
+                      />
+                      Adjuntando
+                    </>
+                  ) : (
+                    "Adjuntar a conversación"
+                  )}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -381,11 +503,38 @@ export function MessageThreadDemo({
             aria-label="Mensaje"
             className="h-9"
           />
-          <Button type="submit" disabled={!draft.trim()}>
-            <SendIcon data-icon="inline-start" />
-            Enviar
+          <Button type="submit" disabled={!draft.trim() || isSending}>
+            {isSending ? (
+              <Loader2Icon data-icon="inline-start" className="animate-spin" />
+            ) : (
+              <SendIcon data-icon="inline-start" />
+            )}
+            {isSending ? "Enviando" : "Enviar"}
           </Button>
         </form>
+        {sendError ? (
+          <div className="mt-3 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm">
+            <div className="flex items-start gap-2">
+              <AlertCircleIcon className="mt-0.5 size-4 text-destructive" />
+              <div className="min-w-0">
+                <p className="font-semibold text-destructive">
+                  No se pudo enviar
+                </p>
+                <p className="break-anywhere mt-1 text-muted-foreground">
+                  {sendError.error ?? "Revisa tu sesión e intenta nuevamente."}
+                </p>
+                {sendError.loginHref ? (
+                  <Link
+                    href={sendError.loginHref}
+                    className="mt-2 inline-flex text-sm font-semibold text-primary hover:underline"
+                  >
+                    Entrar como cliente
+                  </Link>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   )

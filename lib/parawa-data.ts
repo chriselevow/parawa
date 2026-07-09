@@ -34,6 +34,7 @@ type FirebaseUser = Record<string, unknown>
 type FirebaseService = Record<string, unknown>
 type FirebaseBooking = Record<string, unknown>
 type FirebaseReview = Record<string, unknown>
+type FirebaseMessage = Record<string, unknown>
 type FirebaseSlot = Record<string, unknown>
 type FirebaseEnterprise = Record<string, unknown>
 type FirebasePunctualityEvaluation = Record<string, unknown>
@@ -98,6 +99,16 @@ export type ReviewSummary = {
   anon: boolean
   wasPunctual: PunctualityValue
   createdAt: string
+}
+
+export type ThreadMessageSummary = {
+  id: string
+  from: "me" | "them" | "system"
+  text: string
+  time: string
+  status?: "sent" | "read"
+  delivery: "firebase"
+  messageId: string
 }
 
 export type ProviderQualitySummary = {
@@ -1165,6 +1176,78 @@ export async function getMessageThreads() {
 export async function getMessageThreadsForClient(clientId?: string) {
   const bookings = await getBookingsForClient(clientId)
   return messageThreadsForBookings(bookings)
+}
+
+export async function getMessagesForThread(
+  threadId?: string,
+  clientId?: string,
+  providerId?: string
+) {
+  if (!hasFirebaseReadConfig() || !threadId || !clientId) return []
+
+  let messages: FirebaseDocument<FirebaseMessage>[] | null = null
+
+  try {
+    messages = await listFirebaseCollection<FirebaseMessage>("messages", {
+      maxDocs: 500,
+      pageSize: 100,
+    })
+  } catch {
+    return []
+  }
+
+  const normalizedMessages: (ThreadMessageSummary & { sortAt: number })[] = []
+
+  for (const message of messages ?? []) {
+    const messageThreadId = text(message.data.threadId)
+    const messageProviderId = docId(message.data.provider)
+    const customerId = docId(message.data.customer)
+    const senderId = docId(message.data.sender)
+
+    if (messageThreadId !== threadId) continue
+    if (providerId && messageProviderId && messageProviderId !== providerId) {
+      continue
+    }
+    if (customerId && customerId !== clientId && senderId !== clientId) {
+      continue
+    }
+
+    const createdAt = toDate(message.data.createdAt)
+    const attachment =
+      message.data.attachment &&
+      typeof message.data.attachment === "object" &&
+      !Array.isArray(message.data.attachment)
+        ? (message.data.attachment as Record<string, unknown>)
+        : null
+    const attachmentLabel = text(attachment?.label, text(attachment?.kind))
+    const body =
+      text(message.data.body) ||
+      (attachmentLabel ? `Adjunto: ${attachmentLabel}` : "Mensaje")
+
+    normalizedMessages.push({
+      delivery: "firebase",
+      from: senderId === clientId ? "me" : "them",
+      id: message.id,
+      messageId: message.id,
+      status: senderId === clientId ? "sent" : undefined,
+      text: body,
+      time: formatTime(createdAt, "Firebase"),
+      sortAt: createdAt?.getTime() ?? 0,
+    })
+  }
+
+  return normalizedMessages
+    .sort((a, b) => a.sortAt - b.sortAt)
+    .slice(-50)
+    .map((message) => ({
+      delivery: message.delivery,
+      from: message.from,
+      id: message.id,
+      messageId: message.messageId,
+      status: message.status,
+      text: message.text,
+      time: message.time,
+    }))
 }
 
 export async function getAdminData() {

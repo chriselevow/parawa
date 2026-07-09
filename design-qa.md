@@ -113,9 +113,9 @@
   verifications, provider management, and user management now support
   review/approve/reject/suspend/reactivate/detail states with Firebase-aware
   confirmation copy.
-- Completed the visible chat attachment affordance: the paperclip now opens a
-  mobile-safe attachment picker and appends a local sent attachment message with
-  Firebase Storage/message write-path copy.
+- Completed the visible chat attachment affordance: the paperclip opens a
+  mobile-safe attachment picker, appends a sent attachment message, and now
+  routes attachment metadata through the Firebase-ready message write path.
 - Replaced the bare login demo notice with a Firebase Auth-shaped credential
   form, role selector, staged submit confirmation, and retained demo identity
   access for client/provider/admin review.
@@ -139,6 +139,11 @@
   `/api/reviews`, Firebase client sessions can create Firestore review
   documents, and demo client sessions receive explicit non-persisted
   confirmations.
+- Added the first chat-message write path: the client chat composer and
+  attachment picker now post to `/api/messages`, Firebase client sessions can
+  create Firestore `messages` documents, demo sessions receive explicit
+  non-persisted confirmations, and the thread can render bounded persisted
+  Firebase messages when that collection exists.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -286,9 +291,17 @@
   path, rendered `Reseña preparada`, `Demo`, and a generated `web-review-` ID,
   and reported `0` page-level horizontal overflow with no browser console
   errors.
-- This pass could not rerun `next build`: the sandboxed build hit the known
-  Turbopack helper port-bind restriction, and the escalated rerun was blocked
-  by the Codex usage-limit approval reviewer.
+- Production `next build` passed after rerunning with the required Turbopack
+  sandbox escalation.
+- Message-create checks covered `/api/messages` without making a live write:
+  invalid payload returned `400`, unauthenticated create returned `401` with a
+  client-login target, and a demo client session returned `202` with
+  `persisted:false` plus a generated `web-message-` ID.
+- Mobile chat QA on `/messages/BBiONCOTKFQUieIAMAk7Nk5nfq33` submitted a text
+  message and an attachment metadata message through the new path; both
+  rendered `Demo`, generated `web-message-` IDs, cleared/closed the relevant
+  controls, reported `0` page-level horizontal overflow, and produced no
+  browser console errors.
 
 ## Final Result
 

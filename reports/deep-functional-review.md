@@ -125,6 +125,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 38. Completed booking reviews still ended as local-only confirmations.
     - Fix: Added `/api/reviews` with Firestore review document creation for Firebase client sessions, demo-session `202` non-persisted confirmations, unauthenticated client-login targeting, and a mobile-safe review dialog with score, comment, punctuality, privacy, and Firestore/demo result states.
 
+39. Chat send and attachment actions still ended as local-only messages.
+    - Fix: Added `/api/messages` with Firestore `messages` document creation for Firebase client sessions, demo-session `202` non-persisted confirmations, unauthenticated client-login targeting, bounded read-side normalization for future `messages` documents, and mobile-safe composer/attachment result states with generated message IDs.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is connected as a first bridge, but not yet production-grade.
@@ -132,17 +135,17 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
    - Needed: Firebase Admin session-cookie verification or equivalent token verification on protected requests, token refresh/revocation handling, role claims/rules alignment, and production session expiry behavior.
 
 2. Several writes are still not persisted.
-   - Current behavior: booking creation, provider accept/reject status changes, and completed-booking reviews have Firestore write paths for Firebase sessions and clear demo fallbacks. Availability, services, portfolio, admin verification/provider/user management, chat text, and chat attachment states are still local demo flows with confirmation UI.
-   - Needed: verify booking creation/status/review updates against real Firebase Auth test accounts, then add chat/message records and the remaining provider/admin write paths.
+   - Current behavior: booking creation, provider accept/reject status changes, completed-booking reviews, and client chat message/attachment metadata have Firestore write paths for Firebase sessions and clear demo fallbacks. Availability, services, portfolio, admin verification/provider/user management, and binary attachment uploads are still local demo flows with confirmation UI.
+   - Needed: verify booking creation/status/review/message updates against real Firebase Auth test accounts, then add the remaining provider/admin write paths and Storage upload flow.
 
 3. Client booking ownership still depends on app cookies.
    - Current behavior: `/bookings`, booking detail, and client chats filter by the active `parawa_user_id`; real Firebase login now sets this from the Firebase UID, while demo login sets an example UID.
    - Needed: secure authenticated Firestore queries by client plus status/date pagination once session verification and Firebase rules are in place.
 
 4. Messaging schema is unclear.
-   - Current Firebase inventory did not show a clear messages collection.
-   - Current behavior: `/messages` derives one thread per provider from the selected demo user's bookings, then supports client-side search, filters, and pagination.
-   - Needed: decide whether to add `threads`/`messages` collections or reuse an existing source not yet identified.
+   - Current Firebase inventory did not show a clear messages collection, so the app now uses a conservative `messages` write/read shape keyed by the existing provider-thread ID.
+   - Current behavior: `/messages` derives one thread per provider from the selected demo user's bookings, then supports client-side search, filters, and pagination; `/messages/[id]` can render bounded persisted `messages` docs when that collection exists.
+   - Needed: validate the `messages` collection shape with real Firebase accounts, then decide whether separate `threads` documents, unread counters, and participant indexes are required.
 
 5. Provider dashboard uses read-derived metrics but not operational writes.
    - Current behavior: when Firebase env is configured, dashboard metrics come from normalized bookings/providers; active requests support client-side search, filters, and pagination; service and agenda lists render without hidden caps; provider-slot summaries now render in a compact availability card when the selected provider has matching slot docs; accept/reject request dialogs now have a Firestore status update path with demo fallback.
@@ -167,11 +170,11 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 
 10. Client message controls are still client-side over derived booking threads.
     - Current behavior: `/messages` filters and paginates after the read-only adapter derives conversations from bookings.
-    - Needed: authenticated Firestore queries over real thread/message records once the messaging schema exists.
+    - Needed: authenticated Firestore queries over real thread/message records once the message schema and indexes are validated.
 
-11. Chat thread messages are still local demo messages.
-    - Current behavior: `/messages/[id]` can now fit longer message histories with a bounded latest-message window, load-earlier control, quick replies, local send, and local attachment messages, but it does not read or write a Firebase messages collection.
-    - Needed: real message collection reads, send-message writes, attachment Storage uploads, ordering, unread updates, and authenticated participant checks once the messaging schema exists.
+11. Chat thread messages still need production messaging behavior.
+    - Current behavior: `/messages/[id]` can now fit longer message histories with a bounded latest-message window, load-earlier control, quick replies, bounded persisted-message rendering, and `/api/messages` text/attachment metadata writes for Firebase client sessions. Demo sessions still return non-persisted message confirmations.
+    - Needed: live Firebase QA, binary attachment Storage uploads, ordering/indexes, unread updates, and authenticated participant checks.
 
 12. Provider request controls are still client-side over normalized reads.
     - Current behavior: `/provider` filters and paginates after the read-only adapter normalizes the selected demo provider's active reservations.
@@ -201,9 +204,16 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
   opened from a completed booking, submitted through the demo path, rendered
   `Reseña preparada`, `Demo`, and a generated `web-review-` ID, and reported
   `0` page-level horizontal overflow with no browser console errors.
-- This pass could not rerun `next build`: the sandboxed build hit the known
-  Turbopack helper port-bind restriction, and the escalated rerun was blocked
-  by the Codex usage-limit approval reviewer.
+- `/api/messages` non-destructive checks passed: invalid payload `400`,
+  unauthenticated create `401`, and demo client create `202` with
+  `persisted:false` plus a generated `web-message-` ID.
+- Mobile chat QA passed on `/messages/BBiONCOTKFQUieIAMAk7Nk5nfq33`: text send
+  and attachment metadata submit both used the new message path, rendered
+  `Demo` plus generated `web-message-` IDs, cleared or closed the active
+  controls, and reported `0` page-level horizontal overflow with no browser
+  console errors.
+- Production `next build` passed after rerunning with the required Turbopack
+  sandbox escalation.
 - Browser viewport check at `390x844` found no page-level horizontal overflow on `/discover`, `/providers/maria-nails`, `/bookings`, `/bookings/b1`, `/messages/maria-nails`, `/provider`, `/admin/users`, and `/admin/bookings`.
 - Intentional horizontal overflow remains only inside scoped mobile navigation rails where the control itself scrolls.
 - Live Firebase viewport check at `390x844` found no page-level horizontal overflow on `/discover`, `/bookings`, `/messages`, `/provider`, `/admin/bookings`, `/admin/providers`, and `/admin/users`.
@@ -334,4 +344,4 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 
 ## Recommended Next Step
 
-Harden Firebase session verification, run live Firebase QA for booking/status/review writes with real test accounts, then add real message records and the remaining provider/admin write paths.
+Harden Firebase session verification, run live Firebase QA for booking/status/review/message writes with real test accounts, then add Storage uploads, unread/thread indexing, and the remaining provider/admin write paths.
