@@ -35,12 +35,15 @@ import { Separator } from "@/components/ui/separator"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
   getProvider,
+  getReviewsForProvider,
   getServicesForProvider,
+  type ReviewSummary,
   type ServiceSummary,
 } from "@/lib/parawa-data"
 import { cn } from "@/lib/utils"
 
 const PROVIDER_SERVICES_PAGE_LIMIT = 8
+const PROVIDER_REVIEWS_PAGE_LIMIT = 4
 
 type ProviderServiceDisplay = {
   id: string
@@ -76,17 +79,66 @@ function serviceMatchesQuery(service: ProviderServiceDisplay, query: string) {
 
 function providerServiceHref(
   providerPath: string,
-  params: { page: string; q: string },
-  overrides: Partial<{ page: string; q: string }> = {}
+  params: {
+    page: string
+    q: string
+    reviewPage?: string
+    reviewQ?: string
+  },
+  overrides: Partial<{
+    page: string
+    q: string
+    reviewPage: string
+    reviewQ: string
+  }> = {}
 ) {
   const merged = { ...params, ...overrides }
   const next = new URLSearchParams()
 
   if (merged.q) next.set("q", merged.q)
   if (merged.page && merged.page !== "1") next.set("page", merged.page)
+  if (merged.reviewQ) next.set("reviewQ", merged.reviewQ)
+  if (merged.reviewPage && merged.reviewPage !== "1") {
+    next.set("reviewPage", merged.reviewPage)
+  }
 
   const query = next.toString()
   return query ? `${providerPath}?${query}` : providerPath
+}
+
+function reviewMatchesQuery(review: ReviewSummary, query: string) {
+  if (!query) return true
+  const normalizedQuery = query.toLowerCase()
+
+  return [
+    review.id,
+    review.providerId,
+    review.providerName,
+    review.customerId,
+    review.customerName,
+    review.bookingId,
+    review.service,
+    review.serviceNames.join(" "),
+    review.score,
+    review.comment,
+    review.createdAt,
+    review.wasPunctual,
+  ]
+    .join(" ")
+    .toLowerCase()
+    .includes(normalizedQuery)
+}
+
+function punctualityCopy(value: ReviewSummary["wasPunctual"]) {
+  if (value === "yes") return "Puntual"
+  if (value === "no") return "Tarde"
+  return "Sin puntualidad"
+}
+
+function punctualityVariant(value: ReviewSummary["wasPunctual"]) {
+  if (value === "yes") return "default"
+  if (value === "no") return "destructive"
+  return "outline"
 }
 
 export default async function ProviderPage({
@@ -97,6 +149,8 @@ export default async function ProviderPage({
   searchParams?: Promise<{
     page?: string
     q?: string
+    reviewPage?: string
+    reviewQ?: string
   }>
 }) {
   const { id } = await params
@@ -104,6 +158,7 @@ export default async function ProviderPage({
   const provider = await getProvider(id)
   if (!provider) notFound()
   const firebaseServices = await getServicesForProvider(provider.id)
+  const providerReviews = await getReviewsForProvider(provider.id)
   const services: ProviderServiceDisplay[] = firebaseServices.length
     ? firebaseServices.map((service: ServiceSummary) => ({
         id: service.id,
@@ -133,8 +188,16 @@ export default async function ProviderPage({
   const q = typeof search?.q === "string" ? search.q.trim() : ""
   const rawPage = Number(search?.page)
   const requestedPage = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : 1
+  const reviewQ =
+    typeof search?.reviewQ === "string" ? search.reviewQ.trim() : ""
+  const rawReviewPage = Number(search?.reviewPage)
+  const requestedReviewPage =
+    Number.isInteger(rawReviewPage) && rawReviewPage > 0 ? rawReviewPage : 1
   const filteredServices = services.filter((service) =>
     serviceMatchesQuery(service, q)
+  )
+  const filteredReviews = providerReviews.filter((review) =>
+    reviewMatchesQuery(review, reviewQ)
   )
   const {
     end,
@@ -143,9 +206,32 @@ export default async function ProviderPage({
     totalPages,
     visibleItems: visibleServices,
   } = pageItems(filteredServices, requestedPage, PROVIDER_SERVICES_PAGE_LIMIT)
+  const {
+    end: reviewEnd,
+    page: currentReviewPage,
+    start: reviewStart,
+    totalPages: reviewTotalPages,
+    visibleItems: visibleReviews,
+  } = pageItems(
+    filteredReviews,
+    requestedReviewPage,
+    PROVIDER_REVIEWS_PAGE_LIMIT
+  )
   const hasActiveServiceSearch = Boolean(q)
+  const hasActiveReviewSearch = Boolean(reviewQ)
   const providerPath = `/providers/${provider.id}`
-  const servicePaginationParams = { page: String(currentPage), q }
+  const servicePaginationParams = {
+    page: String(currentPage),
+    q,
+    reviewPage: String(currentReviewPage),
+    reviewQ,
+  }
+  const reviewPaginationParams = {
+    page: String(currentPage),
+    q,
+    reviewPage: String(currentReviewPage),
+    reviewQ,
+  }
   const previousServicesHref = providerServiceHref(
     providerPath,
     servicePaginationParams,
@@ -158,6 +244,20 @@ export default async function ProviderPage({
     servicePaginationParams,
     {
       page: String(Math.min(currentPage + 1, totalPages)),
+    }
+  )
+  const previousReviewsHref = providerServiceHref(
+    providerPath,
+    reviewPaginationParams,
+    {
+      reviewPage: String(Math.max(currentReviewPage - 1, 1)),
+    }
+  )
+  const nextReviewsHref = providerServiceHref(
+    providerPath,
+    reviewPaginationParams,
+    {
+      reviewPage: String(Math.min(currentReviewPage + 1, reviewTotalPages)),
     }
   )
 
@@ -229,6 +329,16 @@ export default async function ProviderPage({
                 className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]"
               >
                 <input type="hidden" name="page" value="1" />
+                {reviewQ ? (
+                  <input type="hidden" name="reviewQ" value={reviewQ} />
+                ) : null}
+                {currentReviewPage > 1 ? (
+                  <input
+                    type="hidden"
+                    name="reviewPage"
+                    value={String(currentReviewPage)}
+                  />
+                ) : null}
                 <label className="grid min-w-0 gap-1.5">
                   <span className="text-xs font-semibold text-muted-foreground">
                     Buscar servicios
@@ -249,7 +359,11 @@ export default async function ProviderPage({
                   </Button>
                   {hasActiveServiceSearch ? (
                     <Link
-                      href={providerPath}
+                      href={providerServiceHref(
+                        providerPath,
+                        servicePaginationParams,
+                        { page: "1", q: "" }
+                      )}
                       className={cn(
                         buttonVariants({ variant: "outline" }),
                         "h-10 w-full bg-background sm:w-auto"
@@ -390,12 +504,175 @@ export default async function ProviderPage({
 
       <Card size="sm">
         <CardHeader>
-          <CardTitle>Reseñas recientes</CardTitle>
-          <CardDescription>Contenido de ejemplo</CardDescription>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle>Reseñas recientes</CardTitle>
+              <CardDescription>
+                {filteredReviews.length} de {providerReviews.length} reseñas
+                Firebase.
+              </CardDescription>
+            </div>
+            {providerReviews.length ? (
+              <Badge variant="secondary">
+                <StarIcon data-icon="inline-start" />
+                {provider.rating} promedio
+              </Badge>
+            ) : null}
+          </div>
         </CardHeader>
-        <CardContent className="flex flex-col gap-3 text-sm">
-          <p>“Excelente servicio, muy puntual.” — Cliente verificado</p>
-          <p>“Recomendada, volvería a reservar.” — Ana M.</p>
+        <CardContent className="flex flex-col gap-4 text-sm">
+          <div className="grid gap-3 rounded-xl border border-primary/10 bg-muted/25 p-3">
+            <form
+              action={providerPath}
+              className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]"
+            >
+              {q ? <input type="hidden" name="q" value={q} /> : null}
+              {currentPage > 1 ? (
+                <input type="hidden" name="page" value={String(currentPage)} />
+              ) : null}
+              <input type="hidden" name="reviewPage" value="1" />
+              <label className="grid min-w-0 gap-1.5">
+                <span className="text-xs font-semibold text-muted-foreground">
+                  Buscar reseñas
+                </span>
+                <div className="relative">
+                  <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    name="reviewQ"
+                    defaultValue={reviewQ}
+                    placeholder="Buscar por cliente, servicio, comentario..."
+                    className="h-10 bg-background pl-8"
+                  />
+                </div>
+              </label>
+              <div className="grid gap-2 sm:flex sm:items-end">
+                <Button type="submit" className="h-10">
+                  Buscar
+                </Button>
+                {hasActiveReviewSearch ? (
+                  <Link
+                    href={providerServiceHref(
+                      providerPath,
+                      reviewPaginationParams,
+                      { reviewPage: "1", reviewQ: "" }
+                    )}
+                    className={cn(
+                      buttonVariants({ variant: "outline" }),
+                      "h-10 w-full bg-background sm:w-auto"
+                    )}
+                  >
+                    Limpiar
+                  </Link>
+                ) : null}
+              </div>
+            </form>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline">
+                {filteredReviews.length} resultado
+                {filteredReviews.length === 1 ? "" : "s"}
+              </Badge>
+              {hasActiveReviewSearch ? (
+                <Badge variant="secondary">Búsqueda activa</Badge>
+              ) : null}
+            </div>
+          </div>
+
+          {visibleReviews.length ? (
+            <>
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {visibleReviews.map((review) => (
+                  <li
+                    key={review.id}
+                    className="grid min-w-0 gap-3 rounded-xl border bg-background p-3"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="break-anywhere font-medium">
+                          {review.anon
+                            ? "Cliente anónimo"
+                            : review.customerName}
+                        </p>
+                        <p className="break-anywhere text-xs text-muted-foreground">
+                          {review.createdAt}
+                        </p>
+                      </div>
+                      <Badge variant="outline">
+                        <StarIcon data-icon="inline-start" />
+                        {review.score}
+                      </Badge>
+                    </div>
+                    <p className="break-anywhere line-clamp-4 text-muted-foreground">
+                      {review.comment}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      <Badge variant="secondary">{review.service}</Badge>
+                      {review.serviceCount > 1 ? (
+                        <Badge variant="outline">
+                          {review.serviceCount} servicios
+                        </Badge>
+                      ) : null}
+                      <Badge variant={punctualityVariant(review.wasPunctual)}>
+                        {punctualityCopy(review.wasPunctual)}
+                      </Badge>
+                    </div>
+                    <p className="break-anywhere font-mono text-xs text-muted-foreground">
+                      {review.bookingId || review.id}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+              <div className="flex flex-col gap-3 rounded-xl border border-border/70 bg-muted/25 p-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-muted-foreground">
+                  {`Mostrando ${reviewStart}-${reviewEnd} de ${filteredReviews.length}. Página ${currentReviewPage} de ${reviewTotalPages}.`}
+                </p>
+                <div className="grid grid-cols-2 gap-2 sm:flex">
+                  <Link
+                    href={previousReviewsHref}
+                    aria-disabled={currentReviewPage <= 1}
+                    className={cn(
+                      buttonVariants({ variant: "outline", size: "sm" }),
+                      "bg-background",
+                      currentReviewPage <= 1 && "pointer-events-none opacity-50"
+                    )}
+                  >
+                    <ChevronLeftIcon data-icon="inline-start" />
+                    Anterior
+                  </Link>
+                  <Link
+                    href={nextReviewsHref}
+                    aria-disabled={currentReviewPage >= reviewTotalPages}
+                    className={cn(
+                      buttonVariants({ variant: "outline", size: "sm" }),
+                      "bg-background",
+                      currentReviewPage >= reviewTotalPages &&
+                        "pointer-events-none opacity-50"
+                    )}
+                  >
+                    Siguiente
+                    <ChevronRightIcon data-icon="inline-end" />
+                  </Link>
+                </div>
+              </div>
+            </>
+          ) : (
+            <Empty className="border border-border/70 bg-card">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <SearchXIcon />
+                </EmptyMedia>
+                <EmptyTitle>
+                  {hasActiveReviewSearch
+                    ? "No hay reseñas con esa búsqueda"
+                    : "Sin reseñas publicadas"}
+                </EmptyTitle>
+                <EmptyDescription>
+                  {hasActiveReviewSearch
+                    ? "Limpia la búsqueda para volver a todas las reseñas Firebase de este proveedor."
+                    : "Cuando Firebase devuelva reseñas para este proveedor, aparecerán aquí con puntuación, comentario, servicio y puntualidad."}
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          )}
         </CardContent>
       </Card>
     </PrototypeShell>

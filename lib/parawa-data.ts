@@ -83,6 +83,23 @@ export type PunctualityEvaluationSummary = {
   createdAt: string
 }
 
+export type ReviewSummary = {
+  id: string
+  providerId: string
+  providerName: string
+  customerId: string
+  customerName: string
+  bookingId: string
+  service: string
+  serviceNames: string[]
+  serviceCount: number
+  score: number
+  comment: string
+  anon: boolean
+  wasPunctual: PunctualityValue
+  createdAt: string
+}
+
 export type ProviderQualitySummary = {
   providerId: string
   total: number
@@ -122,6 +139,7 @@ export type ParawaData = {
   serviceSummaries: ServiceSummary[]
   enterpriseSummaries: EnterpriseSummary[]
   punctualityEvaluations: PunctualityEvaluationSummary[]
+  reviewSummaries: ReviewSummary[]
   providerQualitySummaries: ProviderQualitySummary[]
 }
 
@@ -537,6 +555,69 @@ function normalizePunctualityEvaluations(
     )
 }
 
+function normalizeReviewSummaries(
+  reviews: FirebaseDocument<FirebaseReview>[],
+  userById: Map<string, FirebaseDocument<FirebaseUser>>,
+  serviceById: Map<string, FirebaseDocument<FirebaseService>>
+) {
+  return reviews
+    .map((review) => {
+      const providerId = docId(review.data.provider)
+      const customerId = docId(review.data.customer)
+      const createdAt = toDate(review.data.createdAt)
+      const serviceValues = Array.isArray(review.data.services)
+        ? review.data.services
+        : [
+            review.data.service,
+            review.data.serviceId,
+            review.data.serviceRef,
+          ].filter(Boolean)
+      const serviceSummary = summarizeServices(
+        bookingServices(serviceValues, serviceById)
+      )
+      const score = Math.max(0, Math.min(number(review.data.score, 0), 5))
+
+      return {
+        id: review.id,
+        providerId,
+        providerName: fullName(userById.get(providerId)),
+        customerId,
+        customerName: fullName(userById.get(customerId)),
+        bookingId: docId(review.data.booking),
+        service: serviceSummary.service,
+        serviceNames: serviceSummary.serviceNames,
+        serviceCount: serviceSummary.serviceCount,
+        score,
+        comment:
+          profileCopy(review.data.comment) || "Sin comentario publicado.",
+        anon: bool(review.data.anon),
+        wasPunctual: normalizePunctualityValue(review.data.wasPunctual),
+        createdAt: formatDateTime(createdAt, "Sin fecha"),
+        sortAt: createdAt?.getTime() ?? 0,
+      }
+    })
+    .sort((a, b) => b.sortAt - a.sortAt)
+    .map(
+      (review) =>
+        ({
+          id: review.id,
+          providerId: review.providerId,
+          providerName: review.providerName,
+          customerId: review.customerId,
+          customerName: review.customerName,
+          bookingId: review.bookingId,
+          service: review.service,
+          serviceNames: review.serviceNames,
+          serviceCount: review.serviceCount,
+          score: review.score,
+          comment: review.comment,
+          anon: review.anon,
+          wasPunctual: review.wasPunctual,
+          createdAt: review.createdAt,
+        }) satisfies ReviewSummary
+    )
+}
+
 function normalizeProviderQualitySummaries(
   evaluations: PunctualityEvaluationSummary[]
 ) {
@@ -881,6 +962,11 @@ function normalizeFirebaseData(
     userById,
     serviceById
   )
+  const reviewSummaries = normalizeReviewSummaries(
+    reviews,
+    userById,
+    serviceById
+  )
   const providerQualitySummaries = normalizeProviderQualitySummaries(
     punctualityEvaluations
   )
@@ -912,6 +998,7 @@ function normalizeFirebaseData(
     serviceSummaries,
     enterpriseSummaries,
     punctualityEvaluations,
+    reviewSummaries,
     providerQualitySummaries,
   }
 }
@@ -932,6 +1019,7 @@ function mockData(): ParawaData {
     serviceSummaries: [],
     enterpriseSummaries: [],
     punctualityEvaluations: [],
+    reviewSummaries: [],
     providerQualitySummaries: [],
   }
 }
@@ -1090,6 +1178,7 @@ export async function getAdminData() {
     serviceSummaries: data.serviceSummaries,
     enterpriseSummaries: data.enterpriseSummaries,
     punctualityEvaluations: data.punctualityEvaluations,
+    reviewSummaries: data.reviewSummaries,
     providerQualitySummaries: data.providerQualitySummaries,
   }
 }
@@ -1115,6 +1204,14 @@ export async function getServicesForProvider(providerId?: string) {
   const data = await getParawaData()
   return data.serviceSummaries.filter(
     (service) => service.providerId === providerId
+  )
+}
+
+export async function getReviewsForProvider(providerId?: string) {
+  if (!providerId) return []
+  const data = await getParawaData()
+  return data.reviewSummaries.filter(
+    (review) => review.providerId === providerId
   )
 }
 

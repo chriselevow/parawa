@@ -149,6 +149,12 @@ export default async function AdminDashboardPage() {
               Calidad
             </Link>
             <Link
+              href="/admin/reviews"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            >
+              Reseñas
+            </Link>
+            <Link
               href="/"
               className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
             >

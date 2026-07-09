@@ -102,6 +102,10 @@
   the picker now renders image slots, prices, duration, category, package and
   product badges, metadata search, bounded scroll, and a confirmation summary
   that preserves the chosen service details.
+- Added first-class Firebase review coverage: `reviews` now normalize into
+  reusable summaries, `/admin/reviews` provides search/filter/pagination with
+  mobile cards and desktop tables, admin navigation includes `Reseñas`, and
+  public provider profiles render real review cards instead of sample copy.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -193,6 +197,12 @@
   badges, search input, and confirmation CTA; measured dialog bounds stayed
   inside the actual client viewport with `pageOverflow` at `0`; the success
   state preserved selected service name, price, category, and duration.
+- Review coverage checks passed on `/admin/reviews`,
+  `/admin/reviews?filter=low-score&page=99&q=good`, and live provider route
+  `/providers/R9x9I1tnNIa7iZpjlm5Oemid9qi1` at `390x844` and `1280x900`:
+  Firebase review counts, score/comment/punctuality fields, filters, filtered
+  empty state, provider review search, and admin navigation rendered with
+  `pageOverflow` at `0`; the old provider sample review copy was absent.
 
 ## Final Result
 

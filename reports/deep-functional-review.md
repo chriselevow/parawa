@@ -95,6 +95,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 28. Booking dialog service selection still compressed Firebase services to names.
     - Fix: Updated the reservation dialog to accept detailed service records, search across service metadata, render rich bounded service cards with image, price, duration, category, package/product badges, and carry the selected service detail into the confirmation state.
 
+29. Firebase reviews were not first-class UI data.
+    - Fix: Added read-only review normalization for score, comment, anonymous customer state, booking, services, provider/customer names, punctuality, and date; added `/admin/reviews` with search/filter/pagination/mobile cards/desktop table; added admin navigation; and replaced provider-profile sample review copy with real Firebase review cards and search.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -124,11 +127,11 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
    - Needed: validate remaining user/service image paths at larger scale and decide whether private assets need signed URLs.
 
 7. Firebase data adapters are read-only.
-   - Current behavior: UI can normalize Firestore `users`, `services`, `bookings`, `reviews`, `provider-slots`, `enterprise`, and `punctuality_evalution` when a service account env is configured, then falls back to local mock data. Service records, provider-slot data, enterprise records, and punctuality evaluations now have dedicated or contextual UI surfaces.
+   - Current behavior: UI can normalize Firestore `users`, `services`, `bookings`, `reviews`, `provider-slots`, `enterprise`, and `punctuality_evalution` when a service account env is configured, then falls back to local mock data. Service records, provider-slot data, enterprise records, punctuality evaluations, and reviews now have dedicated or contextual UI surfaces.
    - Needed: validate the normalized fields against more real records and add write paths per workflow.
 
 8. Admin list controls are still client-side over normalized reads.
-   - Current behavior: large Firebase collections support query-param search, filters, and pagination after the read-only adapter normalizes records, including bookings, providers, users, and verifications.
+   - Current behavior: large Firebase collections support query-param search, filters, and pagination after the read-only adapter normalizes records, including bookings, providers, users, reviews, services, enterprises, quality, and verifications.
    - Needed: backend/server-query pagination and sorting once Firebase Auth and Firestore rules are in place.
 
 9. Client booking controls are still client-side over normalized reads.
@@ -152,8 +155,8 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
     - Needed: Firestore-backed provider search/category/sort pagination once Firebase Auth, indexes, and production query rules are in place.
 
 14. Provider service controls are still client-side over normalized reads.
-    - Current behavior: `/providers/[id]` filters and paginates after the read-only adapter normalizes all service names for that provider.
-    - Needed: provider-service subqueries or indexed service pagination once Firestore query rules and production indexes are in place.
+    - Current behavior: `/providers/[id]` filters and paginates after the read-only adapter normalizes all services and reviews for that provider.
+    - Needed: provider-service and provider-review subqueries or indexed pagination once Firestore query rules and production indexes are in place.
 
 15. Booking dialog still creates only a local demo reservation.
     - Current behavior: service selection now fits Firebase-sized provider catalogs, but confirmation does not persist a booking.
@@ -253,6 +256,16 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
   confirmation CTA. Actual client-width measurements kept the dialog within the
   viewport with `pageOverflow` at `0`; confirming a reservation preserved the
   selected service, price, category, and duration in the success state.
+- Review collection coverage now includes read-only Firebase normalization for
+  score, comment, anonymous customers, booking, service summaries, provider and
+  customer names, punctuality, and date. Production build passed with 18
+  generated routes, including `/admin/reviews`.
+- Browser checks passed on `/admin/reviews`,
+  `/admin/reviews?filter=low-score&page=99&q=good`, and live provider route
+  `/providers/R9x9I1tnNIa7iZpjlm5Oemid9qi1` at `390x844` and `1280x900`:
+  admin review counts/table/cards, filters, filtered result pagination,
+  provider review cards, provider review empty state, and admin navigation
+  rendered with `pageOverflow` at `0`; console error logs were empty.
 
 ## Recommended Next Step
 

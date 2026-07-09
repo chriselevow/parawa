@@ -5,6 +5,7 @@ import {
   GaugeIcon,
   LayoutDashboardIcon,
   ListChecksIcon,
+  StarIcon,
   type LucideIcon,
   ShieldCheckIcon,
   UsersIcon,
@@ -31,6 +32,7 @@ const baseNav: Array<{
   { href: "/admin/users", label: "Usuarios", icon: UsersIcon },
   { href: "/admin/enterprises", label: "Empresas", icon: Building2Icon },
   { href: "/admin/quality", label: "Calidad", icon: GaugeIcon },
+  { href: "/admin/reviews", label: "Reseñas", icon: StarIcon },
   {
     href: "/admin/verifications",
     label: "Verificaciones",
