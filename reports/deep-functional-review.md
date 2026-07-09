@@ -122,15 +122,18 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 37. Provider accept/reject actions still ended as local-only confirmations.
     - Fix: Added `/api/bookings/[id]/status` with Firestore booking status updates for Firebase provider/admin sessions, provider ownership checks, demo-session `202` confirmations, and mobile-safe accept/reject dialog result states.
 
+38. Completed booking reviews still ended as local-only confirmations.
+    - Fix: Added `/api/reviews` with Firestore review document creation for Firebase client sessions, demo-session `202` non-persisted confirmations, unauthenticated client-login targeting, and a mobile-safe review dialog with score, comment, punctuality, privacy, and Firestore/demo result states.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is connected as a first bridge, but not yet production-grade.
    - Current behavior: login posts email/password to Firebase Identity Toolkit, resolves the returned UID against Firestore `users/{uid}` or `PARAWA_ADMIN_EMAILS`, then sets HttpOnly Parawa role/user/source cookies. Demo buttons still set example identity cookies for QA and are labeled as demo sessions.
    - Needed: Firebase Admin session-cookie verification or equivalent token verification on protected requests, token refresh/revocation handling, role claims/rules alignment, and production session expiry behavior.
 
-2. Writes are not persisted.
-   - Current behavior: booking creation and provider accept/reject status changes have Firestore write paths for Firebase sessions and clear demo fallbacks. Review, availability, services, portfolio, admin verification/provider/user management, chat text, and chat attachment states are still local demo flows with confirmation UI.
-   - Needed: verify booking creation/status updates against real Firebase Auth test accounts, then add create review and chat/message records.
+2. Several writes are still not persisted.
+   - Current behavior: booking creation, provider accept/reject status changes, and completed-booking reviews have Firestore write paths for Firebase sessions and clear demo fallbacks. Availability, services, portfolio, admin verification/provider/user management, chat text, and chat attachment states are still local demo flows with confirmation UI.
+   - Needed: verify booking creation/status/review updates against real Firebase Auth test accounts, then add chat/message records and the remaining provider/admin write paths.
 
 3. Client booking ownership still depends on app cookies.
    - Current behavior: `/bookings`, booking detail, and client chats filter by the active `parawa_user_id`; real Firebase login now sets this from the Firebase UID, while demo login sets an example UID.
@@ -182,15 +185,25 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
     - Current behavior: `/providers/[id]` filters and paginates after the read-only adapter normalizes all services and reviews for that provider.
     - Needed: provider-service and provider-review subqueries or indexed pagination once Firestore query rules and production indexes are in place.
 
-15. Booking dialog still creates only a local demo reservation.
-    - Current behavior: service selection fits Firebase-sized provider catalogs and confirmation posts to `/api/bookings`. Firebase client sessions can create a Firestore booking document; demo sessions return a non-persisted confirmation.
-    - Needed: live write QA with a real Firebase client account, Firestore security rules/index review, and post-create refresh into `/bookings`.
+15. Booking and review write paths still need live Firebase QA.
+    - Current behavior: service selection fits Firebase-sized provider catalogs and confirmation posts to `/api/bookings`; completed booking reviews post to `/api/reviews`. Firebase client sessions can create Firestore booking and review documents; demo sessions return non-persisted confirmations.
+    - Needed: live write QA with a real Firebase client account, Firestore security rules/index review, post-create refresh into `/bookings`, and post-review refresh into provider/admin review surfaces.
 
 ## Responsive/Data-Fit Checks
 
 - `next build` passed with the bundled Node runtime.
 - `tsc --noEmit` passed.
 - `git diff --check` passed.
+- `/api/reviews` non-destructive checks passed: invalid payload `400`,
+  unauthenticated create `401`, and demo client create `202` with
+  `persisted:false`.
+- Mobile review-dialog QA passed on `/bookings?filter=completed`: the dialog
+  opened from a completed booking, submitted through the demo path, rendered
+  `Reseña preparada`, `Demo`, and a generated `web-review-` ID, and reported
+  `0` page-level horizontal overflow with no browser console errors.
+- This pass could not rerun `next build`: the sandboxed build hit the known
+  Turbopack helper port-bind restriction, and the escalated rerun was blocked
+  by the Codex usage-limit approval reviewer.
 - Browser viewport check at `390x844` found no page-level horizontal overflow on `/discover`, `/providers/maria-nails`, `/bookings`, `/bookings/b1`, `/messages/maria-nails`, `/provider`, `/admin/users`, and `/admin/bookings`.
 - Intentional horizontal overflow remains only inside scoped mobile navigation rails where the control itself scrolls.
 - Live Firebase viewport check at `390x844` found no page-level horizontal overflow on `/discover`, `/bookings`, `/messages`, `/provider`, `/admin/bookings`, `/admin/providers`, and `/admin/users`.
@@ -321,4 +334,4 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 
 ## Recommended Next Step
 
-Add Firebase Auth and real role identity next, then filter client/provider data by the authenticated user before adding writes: provider accept/reject, booking creation, review creation, then real messages.
+Harden Firebase session verification, run live Firebase QA for booking/status/review writes with real test accounts, then add real message records and the remaining provider/admin write paths.

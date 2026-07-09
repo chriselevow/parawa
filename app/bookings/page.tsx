@@ -237,8 +237,11 @@ export default async function BookingsPage({
               </Link>
               {booking.status === "completed" && (
                 <ReviewDialog
+                  bookingId={booking.id}
+                  providerId={booking.providerId}
                   providerName={booking.providerName}
                   service={booking.service}
+                  serviceNames={booking.serviceNames}
                 />
               )}
             </CardFooter>

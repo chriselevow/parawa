@@ -135,6 +135,10 @@
   now call `/api/bookings/[id]/status`, Firebase provider sessions can update
   the Firestore booking status, and demo provider sessions receive explicit
   non-persisted confirmations.
+- Added the completed-booking review write path: review dialogs now post to
+  `/api/reviews`, Firebase client sessions can create Firestore review
+  documents, and demo client sessions receive explicit non-persisted
+  confirmations.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -273,6 +277,18 @@
   with `persisted:false`. Mobile provider QA at `390x844` confirmed the
   `Aceptar` dialog submits through the new path, shows `Solicitud aceptada`,
   carries demo/Firebase-write-path status copy, and keeps page overflow `0`.
+- Review-create checks covered `/api/reviews` without making a live write:
+  invalid payload returned `400`, unauthenticated create returned `401` with a
+  client-login target, and a demo client session returned `202` with
+  `persisted:false` plus a generated `web-review-` ID.
+- Mobile review-dialog QA on `/bookings?filter=completed` opened a completed
+  booking review at the temporary mobile viewport, submitted through the demo
+  path, rendered `Reseña preparada`, `Demo`, and a generated `web-review-` ID,
+  and reported `0` page-level horizontal overflow with no browser console
+  errors.
+- This pass could not rerun `next build`: the sandboxed build hit the known
+  Turbopack helper port-bind restriction, and the escalated rerun was blocked
+  by the Codex usage-limit approval reviewer.
 
 ## Final Result
 
