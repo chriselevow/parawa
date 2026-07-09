@@ -119,6 +119,10 @@
 - Replaced the bare login demo notice with a Firebase Auth-shaped credential
   form, role selector, staged submit confirmation, and retained demo identity
   access for client/provider/admin review.
+- Connected the primary login form to a Firebase Auth REST bridge: the server
+  now validates email/password with Identity Toolkit, resolves the Firebase UID
+  against the `users` document or admin-email allowlist, sets the active
+  role/user cookies, and keeps demo access as a separate QA fallback.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -234,9 +238,12 @@
   and browser error logs were empty.
 - Login/Auth checks passed on `/login?role=provider&next=%2Fprovider` at
   `390x844` and `/login?role=admin&next=%2Fadmin` at `1280x900`: email/password
-  fields, role selector where relevant, staged Firebase Auth confirmation, and
-  demo access controls rendered with page overflow `0`; the old `Sin clave por
-ahora` copy was absent, and admin demo access reached `/admin`.
+  fields, `Entrar con Firebase`, role selector where relevant, and demo access
+  controls rendered with page overflow `0`; the old `Preparar acceso Firebase`
+  and `Sin clave por ahora` copy were absent. Fake credential submit produced
+  the expected missing-env Firebase error inside the form with page overflow
+  `0`; `/api/auth/firebase-login` returned `400` for missing fields and `401`
+  for missing Firebase web API key.
 
 ## Final Result
 

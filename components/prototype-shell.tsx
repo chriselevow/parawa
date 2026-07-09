@@ -52,7 +52,7 @@ export function PrototypeShell({
         {children}
       </main>
       <footer className="border-t py-4 text-center text-xs text-muted-foreground">
-        Prototipo clickeable · sin backend · Panamá
+        Prototipo operativo · Firebase-ready · Panamá
       </footer>
     </div>
   )

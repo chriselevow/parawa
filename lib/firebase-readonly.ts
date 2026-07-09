@@ -218,3 +218,38 @@ export async function listFirebaseCollection<T = Record<string, unknown>>(
 
   return documents
 }
+
+export async function getFirebaseDocument<T = Record<string, unknown>>(
+  collectionId: string,
+  documentId: string
+): Promise<FirebaseDocument<T> | null> {
+  const serviceAccount = parseServiceAccount()
+  if (!serviceAccount || !documentId) return null
+
+  const projectId =
+    process.env.PARAWA_FIREBASE_PROJECT_ID ??
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ??
+    serviceAccount.project_id
+  const token = await getAccessToken(serviceAccount)
+  const root = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`
+  const url = `${root}/${encodeURIComponent(collectionId)}/${encodeURIComponent(
+    documentId
+  )}`
+
+  const response = await fetch(url, {
+    headers: { authorization: `Bearer ${token}` },
+    cache: "no-store",
+  })
+
+  if (response.status === 404) return null
+
+  if (!response.ok) {
+    throw new Error(
+      `Firestore ${collectionId}/${documentId} read failed with ${response.status}`
+    )
+  }
+
+  return decodeDocument(
+    (await response.json()) as FirestoreDocument
+  ) as FirebaseDocument<T> | null
+}

@@ -110,19 +110,22 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 33. Login still looked like a pure demo gate.
     - Fix: Replaced the bare `Sin clave por ahora` notice with a Firebase Auth-shaped email/password form, role selector, staged token-validation confirmation, and retained demo identity access for route/data review until real Auth is connected.
 
+34. Login credential form still did not authenticate.
+    - Fix: Added `/api/auth/firebase-login`, a server-side Firebase Identity Toolkit sign-in bridge, single-user Firestore lookup for `users/{uid}`, admin email allowlist support, role mismatch protection, and cookie setup for the resolved Firebase UID/role.
+
 ## Remaining Functional Gaps
 
-1. Firebase Auth is not connected to real sessions.
-   - Current behavior: login now has a Firebase Auth-shaped credential UI with staged submit feedback, but real sessions still use role cookies with Firebase-derived example identity cookies.
-   - Needed: Firebase Auth sign-in, role claims/profile lookup, protected routes based on real user identity.
+1. Firebase Auth is connected as a first bridge, but not yet production-grade.
+   - Current behavior: login posts email/password to Firebase Identity Toolkit, resolves the returned UID against Firestore `users/{uid}` or `PARAWA_ADMIN_EMAILS`, then sets the active Parawa role/user cookies. Demo buttons still set example identity cookies for QA.
+   - Needed: hardened HttpOnly session cookies or Firebase Admin session verification, token refresh/revocation handling, role claims/rules alignment, and production sign-out/session expiry behavior.
 
 2. Writes are not persisted.
    - Current behavior: booking, review, provider request, availability, services, portfolio, admin verification/provider/user management, chat text, and chat attachment states are local demo flows with confirmation UI.
    - Needed: create booking, update booking status, create review, and create chat/message records.
 
-3. Client booking ownership is not filtered by authenticated identity.
-   - Current behavior: `/bookings`, booking detail, and client chats filter by a selected demo identity cookie, not a real Firebase Auth user.
-   - Needed: filter bookings by authenticated client and add status/date pagination.
+3. Client booking ownership still depends on app cookies.
+   - Current behavior: `/bookings`, booking detail, and client chats filter by the active `parawa_user_id`; real Firebase login now sets this from the Firebase UID, while demo login sets an example UID.
+   - Needed: secure authenticated Firestore queries by client plus status/date pagination once session verification and Firebase rules are in place.
 
 4. Messaging schema is unclear.
    - Current Firebase inventory did not show a clear messages collection.

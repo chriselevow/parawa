@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
+  AlertCircleIcon,
   CheckCircle2Icon,
   KeyRoundIcon,
   LogOutIcon,
@@ -22,6 +23,7 @@ import {
   roleLabels,
   USER_COOKIE,
 } from "@/lib/roles"
+import { cn } from "@/lib/utils"
 
 const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 14
 
@@ -29,6 +31,15 @@ type RoleIdentityOption = {
   id: string
   label: string
   detail?: string
+}
+
+type FirebaseLoginResponse = {
+  destination?: string
+  email?: string
+  error?: string
+  role?: AppRole
+  roleSource?: "admin-email" | "requested-role" | "users"
+  userId?: string
 }
 
 function setSessionCookies(role: AppRole, userId?: string) {
@@ -40,6 +51,16 @@ function setSessionCookies(role: AppRole, userId?: string) {
     window.localStorage.setItem(USER_COOKIE, userId)
   } else {
     document.cookie = `${USER_COOKIE}=; path=/; max-age=0; samesite=lax`
+    window.localStorage.removeItem(USER_COOKIE)
+  }
+}
+
+function setLocalSession(role: AppRole, userId?: string) {
+  window.localStorage.setItem(ROLE_COOKIE, role)
+
+  if (userId) {
+    window.localStorage.setItem(USER_COOKIE, userId)
+  } else {
     window.localStorage.removeItem(USER_COOKIE)
   }
 }
@@ -79,20 +100,74 @@ export function RoleLoginActions({
   const [selectedRole, setSelectedRole] = useState<AppRole>(roles[0])
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [authPrepared, setAuthPrepared] = useState(false)
+  const [authFeedback, setAuthFeedback] = useState<{
+    detail: string
+    title: string
+    tone: "error" | "success"
+  } | null>(null)
+  const [isSubmittingAuth, setIsSubmittingAuth] = useState(false)
+
+  function resetAuthFeedback() {
+    setAuthFeedback(null)
+  }
 
   function signIn(role: AppRole) {
     setSessionCookies(role, identities?.[role]?.id)
     router.push(destinationForRole(role, nextPath))
   }
 
+  async function signInWithFirebase() {
+    setIsSubmittingAuth(true)
+    setAuthFeedback(null)
+
+    try {
+      const response = await fetch("/api/auth/firebase-login", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          email,
+          nextPath,
+          password,
+          role: selectedRole,
+        }),
+      })
+      const json = (await response.json()) as FirebaseLoginResponse
+
+      if (!response.ok || !json.role || !json.destination) {
+        throw new Error(json.error ?? "No pudimos iniciar sesión con Firebase.")
+      }
+
+      setLocalSession(json.role, json.userId)
+      setAuthFeedback({
+        detail: `Perfil ${roleLabels[json.role]} validado${
+          json.roleSource === "users" ? " desde Firestore" : ""
+        }.`,
+        title: "Acceso Firebase verificado",
+        tone: "success",
+      })
+      router.push(json.destination)
+    } catch (error) {
+      setAuthFeedback({
+        detail:
+          error instanceof Error
+            ? error.message
+            : "No pudimos iniciar sesión con Firebase.",
+        title: "Revisa el acceso",
+        tone: "error",
+      })
+    } finally {
+      setIsSubmittingAuth(false)
+    }
+  }
+
   return (
     <div className="flex w-full flex-col gap-4">
       <form
         className="grid gap-4 rounded-xl border border-primary/15 bg-background p-4 shadow-sm shadow-primary/5"
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault()
-          setAuthPrepared(true)
+          await signInWithFirebase()
         }}
       >
         <div className="flex flex-wrap items-center gap-2">
@@ -115,7 +190,7 @@ export function RoleLoginActions({
                 value={email}
                 onChange={(event) => {
                   setEmail(event.target.value)
-                  setAuthPrepared(false)
+                  resetAuthFeedback()
                 }}
                 placeholder="correo@parawa.app"
                 className="h-10 pl-8"
@@ -133,7 +208,7 @@ export function RoleLoginActions({
                 value={password}
                 onChange={(event) => {
                   setPassword(event.target.value)
-                  setAuthPrepared(false)
+                  resetAuthFeedback()
                 }}
                 placeholder="••••••••"
                 className="h-10 pl-8"
@@ -154,7 +229,7 @@ export function RoleLoginActions({
                   className="h-9"
                   onClick={() => {
                     setSelectedRole(role)
-                    setAuthPrepared(false)
+                    resetAuthFeedback()
                   }}
                 >
                   {roleLabels[role]}
@@ -163,24 +238,44 @@ export function RoleLoginActions({
             </div>
           </div>
         ) : null}
-        {authPrepared ? (
-          <div className="rounded-xl border border-primary/15 bg-primary/5 p-3 text-sm">
+        {authFeedback ? (
+          <div
+            className={cn(
+              "rounded-xl border p-3 text-sm",
+              authFeedback.tone === "success"
+                ? "border-primary/15 bg-primary/5"
+                : "border-destructive/20 bg-destructive/5"
+            )}
+          >
             <div className="flex items-start gap-2">
-              <CheckCircle2Icon className="mt-0.5 size-4 text-primary" />
+              {authFeedback.tone === "success" ? (
+                <CheckCircle2Icon className="mt-0.5 size-4 text-primary" />
+              ) : (
+                <AlertCircleIcon className="mt-0.5 size-4 text-destructive" />
+              )}
               <div className="min-w-0">
-                <p className="font-semibold text-primary">
-                  Formulario listo para Firebase
+                <p
+                  className={cn(
+                    "font-semibold",
+                    authFeedback.tone === "success"
+                      ? "text-primary"
+                      : "text-destructive"
+                  )}
+                >
+                  {authFeedback.title}
                 </p>
                 <p className="break-anywhere mt-1 text-muted-foreground">
-                  En producción validará el token de {roleLabels[selectedRole]}{" "}
-                  y cargará el perfil asociado antes de entrar.
+                  {authFeedback.detail}
                 </p>
               </div>
             </div>
           </div>
         ) : null}
-        <Button type="submit" disabled={!email.trim() || !password.trim()}>
-          Preparar acceso Firebase
+        <Button
+          type="submit"
+          disabled={!email.trim() || !password.trim() || isSubmittingAuth}
+        >
+          {isSubmittingAuth ? "Validando..." : "Entrar con Firebase"}
         </Button>
       </form>
 
