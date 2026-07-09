@@ -116,6 +116,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 35. Firebase login cookies were still shaped like demo cookies.
     - Fix: Firebase Auth login now writes HttpOnly role/user/source cookies, demo login marks `parawa_session_source=demo`, and `/api/auth/sign-out` clears server cookies while the shared sign-out button also clears local browser state.
 
+36. Booking dialog still ended as a local-only confirmation.
+    - Fix: Added `/api/bookings` with Firestore booking document creation for Firebase client sessions, demo-session `202` non-persisted confirmations, unauthenticated client-login targeting, and dialog fields for future date/time, address, notes, selected service, generated code, and Firestore/demo state.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is connected as a first bridge, but not yet production-grade.
@@ -123,8 +126,8 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
    - Needed: Firebase Admin session-cookie verification or equivalent token verification on protected requests, token refresh/revocation handling, role claims/rules alignment, and production session expiry behavior.
 
 2. Writes are not persisted.
-   - Current behavior: booking, review, provider request, availability, services, portfolio, admin verification/provider/user management, chat text, and chat attachment states are local demo flows with confirmation UI.
-   - Needed: create booking, update booking status, create review, and create chat/message records.
+   - Current behavior: booking creation has a Firestore write path for Firebase client sessions and a clear demo fallback. Review, provider request, availability, services, portfolio, admin verification/provider/user management, chat text, and chat attachment states are still local demo flows with confirmation UI.
+   - Needed: verify booking creation against a real Firebase Auth client account, then add update booking status, create review, and create chat/message records.
 
 3. Client booking ownership still depends on app cookies.
    - Current behavior: `/bookings`, booking detail, and client chats filter by the active `parawa_user_id`; real Firebase login now sets this from the Firebase UID, while demo login sets an example UID.
@@ -177,8 +180,8 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
     - Needed: provider-service and provider-review subqueries or indexed pagination once Firestore query rules and production indexes are in place.
 
 15. Booking dialog still creates only a local demo reservation.
-    - Current behavior: service selection now fits Firebase-sized provider catalogs, but confirmation does not persist a booking.
-    - Needed: create Firestore booking writes tied to authenticated client/provider identities.
+    - Current behavior: service selection fits Firebase-sized provider catalogs and confirmation posts to `/api/bookings`. Firebase client sessions can create a Firestore booking document; demo sessions return a non-persisted confirmation.
+    - Needed: live write QA with a real Firebase client account, Firestore security rules/index review, and post-create refresh into `/bookings`.
 
 ## Responsive/Data-Fit Checks
 

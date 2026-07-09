@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useMemo, useState } from "react"
 import {
+  AlertCircleIcon,
   CheckCircle2Icon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -59,6 +60,24 @@ export type BookableService = {
 }
 
 const SERVICE_PICKER_PAGE_SIZE = 4
+const BOOKING_DATE_OPTIONS = [
+  { value: "2026-07-10", label: "Vie 10 Jul" },
+  { value: "2026-07-11", label: "Sáb 11 Jul" },
+]
+const BOOKING_TIME_OPTIONS = [
+  { value: "10:00", label: "10:00 AM" },
+  { value: "15:00", label: "3:00 PM" },
+  { value: "18:00", label: "6:00 PM" },
+]
+
+type BookingCreateResponse = {
+  bookingId?: string
+  code?: string
+  error?: string
+  loginHref?: string
+  message?: string
+  persisted?: boolean
+}
 
 function pageServices(services: BookableService[], page: number) {
   const totalPages = Math.max(
@@ -130,15 +149,34 @@ export function BookServiceDialog({
   )
   const [open, setOpen] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
+  const [bookingResult, setBookingResult] =
+    useState<BookingCreateResponse | null>(null)
+  const [bookingError, setBookingError] =
+    useState<BookingCreateResponse | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [serviceQuery, setServiceQuery] = useState("")
   const [selectedServiceId, setSelectedServiceId] = useState(
     serviceOptions[0]?.id ?? defaultServiceForProvider(provider).id
   )
   const [servicePage, setServicePage] = useState(1)
+  const [selectedDate, setSelectedDate] = useState(
+    BOOKING_DATE_OPTIONS[0].value
+  )
+  const [selectedTime, setSelectedTime] = useState(
+    BOOKING_TIME_OPTIONS[1].value
+  )
+  const [address, setAddress] = useState("")
+  const [notes, setNotes] = useState("")
   const selectedService =
     serviceOptions.find((service) => service.id === selectedServiceId) ??
     serviceOptions[0] ??
     defaultServiceForProvider(provider)
+  const selectedDateLabel =
+    BOOKING_DATE_OPTIONS.find((option) => option.value === selectedDate)
+      ?.label ?? selectedDate
+  const selectedTimeLabel =
+    BOOKING_TIME_OPTIONS.find((option) => option.value === selectedTime)
+      ?.label ?? selectedTime
   const filteredServices = useMemo(() => {
     return serviceOptions.filter((service) =>
       serviceMatchesQuery(service, serviceQuery)
@@ -150,12 +188,59 @@ export function BookServiceDialog({
   )
   const hasServiceSearch = Boolean(serviceQuery.trim())
 
+  async function confirmBooking() {
+    setIsSubmitting(true)
+    setBookingError(null)
+
+    try {
+      const response = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          address,
+          date: selectedDate,
+          notes,
+          providerId: provider.id,
+          providerName: provider.name,
+          service: {
+            category: selectedService.category,
+            duration: selectedService.duration,
+            id: selectedService.id,
+            price: selectedService.price,
+            title: selectedService.title,
+          },
+          time: selectedTime,
+        }),
+      })
+      const json = (await response.json()) as BookingCreateResponse
+
+      if (!response.ok && response.status !== 202) {
+        setBookingError(json)
+        return
+      }
+
+      setBookingResult(json)
+      setConfirmed(true)
+    } catch {
+      setBookingError({
+        error: "No pudimos preparar la reserva. Intenta nuevamente.",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
         setOpen(nextOpen)
-        if (!nextOpen) setConfirmed(false)
+        if (!nextOpen) {
+          setBookingError(null)
+          setBookingResult(null)
+          setConfirmed(false)
+        }
       }}
     >
       <DialogTrigger
@@ -175,10 +260,14 @@ export function BookServiceDialog({
               <div className="mb-1 flex size-10 items-center justify-center rounded-full bg-[#e7f7f3] text-[#087466]">
                 <CheckCircle2Icon />
               </div>
-              <DialogTitle>Solicitud creada</DialogTitle>
+              <DialogTitle>
+                {bookingResult?.persisted
+                  ? "Reserva guardada"
+                  : "Solicitud preparada"}
+              </DialogTitle>
               <DialogDescription>
-                Guardamos esta reserva como demo. En la versión con Firebase se
-                creará en Firestore y notificará al proveedor.
+                {bookingResult?.message ??
+                  "La solicitud quedó preparada para revisar el flujo."}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-3 rounded-xl border bg-muted/35 p-3 text-sm">
@@ -200,15 +289,34 @@ export function BookServiceDialog({
                     {selectedService.title}
                   </p>
                   <p className="break-anywhere text-muted-foreground">
-                    Vie 23 May · 3:00 PM · ${selectedService.price}
+                    {selectedDateLabel} · {selectedTimeLabel} · $
+                    {selectedService.price}
                   </p>
                 </div>
               </div>
               <div className="flex flex-wrap gap-1.5">
+                {bookingResult?.persisted ? (
+                  <Badge>Firestore</Badge>
+                ) : (
+                  <Badge variant="outline">Demo</Badge>
+                )}
                 <Badge variant="secondary">{selectedService.category}</Badge>
                 <Badge variant="outline">{selectedService.duration}</Badge>
                 {selectedService.isPackage ? <Badge>Paquete</Badge> : null}
+                {bookingResult?.code ? (
+                  <Badge variant="outline">{bookingResult.code}</Badge>
+                ) : null}
               </div>
+              {address || notes ? (
+                <div className="grid gap-1 rounded-lg border bg-background/80 p-2 text-xs text-muted-foreground">
+                  {address ? (
+                    <p className="break-anywhere">Dirección: {address}</p>
+                  ) : null}
+                  {notes ? (
+                    <p className="break-anywhere">Notas: {notes}</p>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
             <DialogFooter className="flex-col gap-2 sm:flex-row">
               <DialogClose
@@ -234,8 +342,8 @@ export function BookServiceDialog({
                 Reservar con {provider.name}
               </DialogTitle>
               <DialogDescription>
-                Confirma una solicitud demo. Si no has entrado, te pedirá acceso
-                de cliente al abrir tus reservas.
+                Confirma una solicitud. Si entraste con Firebase se guardará en
+                Firestore; si estás en demo, quedará como flujo de prueba.
               </DialogDescription>
             </DialogHeader>
             <form className="flex flex-col gap-4">
@@ -402,42 +510,94 @@ export function BookServiceDialog({
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="date">Fecha</Label>
-                  <Select defaultValue="vie-23">
+                  <Select
+                    value={selectedDate}
+                    onValueChange={(value) => {
+                      if (value) setSelectedDate(value)
+                    }}
+                  >
                     <SelectTrigger id="date" className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="vie-23">Vie 23 May</SelectItem>
-                        <SelectItem value="sab-24">Sáb 24 May</SelectItem>
+                        {BOOKING_DATE_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
                       </SelectGroup>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="time">Hora</Label>
-                  <Select defaultValue="15:00">
+                  <Select
+                    value={selectedTime}
+                    onValueChange={(value) => {
+                      if (value) setSelectedTime(value)
+                    }}
+                  >
                     <SelectTrigger id="time" className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="10:00">10:00 AM</SelectItem>
-                        <SelectItem value="15:00">3:00 PM</SelectItem>
-                        <SelectItem value="18:00">6:00 PM</SelectItem>
+                        {BOOKING_TIME_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
                       </SelectGroup>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <div className="flex flex-col gap-2">
+                <Label htmlFor="address">Dirección</Label>
+                <Input
+                  id="address"
+                  value={address}
+                  onChange={(event) => setAddress(event.target.value)}
+                  placeholder="Ej. PH Central, San Francisco"
+                  className="h-10"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
                 <Label htmlFor="notes">Notas</Label>
                 <Textarea
                   id="notes"
+                  value={notes}
+                  onChange={(event) => setNotes(event.target.value)}
                   placeholder="Ej. tengo estacionamiento en el edificio"
                   rows={3}
                 />
               </div>
+              {bookingError ? (
+                <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm">
+                  <div className="flex items-start gap-2">
+                    <AlertCircleIcon className="mt-0.5 size-4 text-destructive" />
+                    <div className="min-w-0">
+                      <p className="font-semibold text-destructive">
+                        No se pudo guardar
+                      </p>
+                      <p className="break-anywhere mt-1 text-muted-foreground">
+                        {bookingError.error ??
+                          "Revisa tu sesión e intenta nuevamente."}
+                      </p>
+                      {bookingError.loginHref ? (
+                        <Link
+                          href={bookingError.loginHref}
+                          className="mt-2 inline-flex text-sm font-semibold text-primary hover:underline"
+                          onClick={() => setOpen(false)}
+                        >
+                          Entrar como cliente
+                        </Link>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </form>
             <DialogFooter className="flex-col gap-2 sm:flex-row">
               <DialogClose
@@ -449,9 +609,10 @@ export function BookServiceDialog({
               </DialogClose>
               <Button
                 className="w-full sm:flex-1"
-                onClick={() => setConfirmed(true)}
+                disabled={isSubmitting}
+                onClick={confirmBooking}
               >
-                Confirmar reserva
+                {isSubmitting ? "Guardando..." : "Confirmar reserva"}
               </Button>
             </DialogFooter>
           </>

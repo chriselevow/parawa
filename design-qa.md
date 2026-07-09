@@ -127,6 +127,10 @@
   writes HttpOnly role/user/source cookies, demo login carries an explicit demo
   source, and the shared sign-out control clears both server and browser
   session state.
+- Added the first booking write path: `Reservar` now posts provider, selected
+  service, future date/time, address, and notes to `/api/bookings`; Firebase
+  client sessions can create a Firestore booking document, while demo sessions
+  receive an explicit non-persisted confirmation.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -252,6 +256,13 @@
   demo-provider sign-in/sign-out, and Firebase-login error handling: sign-out
   cleared role/user/source cookies, returned the user to `/`, and mobile login
   stayed at page overflow `0`.
+- Booking-create checks covered `/api/bookings` without making a live write:
+  invalid payload returned `400`, unauthenticated create returned `401` with a
+  client-login target, and a demo client session returned `202` with
+  `persisted:false` plus a generated `PAR-` code. Mobile dialog QA at `390x844`
+  on `/providers/maria-nails` confirmed the service picker, address/notes
+  fields, future `Vie 10 Jul` date, demo confirmation, generated code, and
+  page overflow `0`; the old `Vie 23 May` copy was absent.
 
 ## Final Result
 

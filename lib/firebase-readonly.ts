@@ -25,6 +25,22 @@ type FirestoreDocument = {
   fields?: Record<string, FirestoreValue>
 }
 
+type FirebaseReference = {
+  __type: "reference"
+  collectionId: string
+  documentId: string
+}
+
+type FirestoreWriteValue =
+  | string
+  | number
+  | boolean
+  | null
+  | Date
+  | FirebaseReference
+  | FirestoreWriteValue[]
+  | { [key: string]: FirestoreWriteValue | undefined }
+
 export type FirebaseDocument<T = Record<string, unknown>> = {
   id: string
   path: string
@@ -166,6 +182,96 @@ function decodeDocument(document: FirestoreDocument) {
   }
 }
 
+function firestoreRoot(projectId: string) {
+  return `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`
+}
+
+function referencePath(
+  projectId: string,
+  collectionId: string,
+  documentId: string
+) {
+  return `projects/${projectId}/databases/(default)/documents/${collectionId}/${documentId}`
+}
+
+function isFirebaseReference(value: unknown): value is FirebaseReference {
+  return (
+    Boolean(value) &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    (value as FirebaseReference).__type === "reference"
+  )
+}
+
+function encodeValue(
+  value: FirestoreWriteValue | undefined,
+  projectId: string
+): FirestoreValue | undefined {
+  if (value === undefined) return undefined
+  if (value === null) return { nullValue: null }
+  if (typeof value === "string") return { stringValue: value }
+  if (typeof value === "boolean") return { booleanValue: value }
+  if (typeof value === "number") {
+    return Number.isInteger(value)
+      ? { integerValue: String(value) }
+      : { doubleValue: value }
+  }
+  if (value instanceof Date) return { timestampValue: value.toISOString() }
+  if (isFirebaseReference(value)) {
+    return {
+      referenceValue: referencePath(
+        projectId,
+        value.collectionId,
+        value.documentId
+      ),
+    }
+  }
+  if (Array.isArray(value)) {
+    return {
+      arrayValue: {
+        values: value
+          .map((item) => encodeValue(item, projectId))
+          .filter((item): item is FirestoreValue => Boolean(item)),
+      },
+    }
+  }
+
+  return {
+    mapValue: {
+      fields: Object.fromEntries(
+        Object.entries(value)
+          .map(([key, nestedValue]) => [
+            key,
+            encodeValue(nestedValue, projectId),
+          ])
+          .filter(
+            (entry): entry is [string, FirestoreValue] => entry[1] !== undefined
+          )
+      ),
+    },
+  }
+}
+
+function encodeFields(
+  data: Record<string, FirestoreWriteValue | undefined>,
+  projectId: string
+) {
+  return Object.fromEntries(
+    Object.entries(data)
+      .map(([key, value]) => [key, encodeValue(value, projectId)])
+      .filter(
+        (entry): entry is [string, FirestoreValue] => entry[1] !== undefined
+      )
+  )
+}
+
+export function firebaseReference(
+  collectionId: string,
+  documentId: string
+): FirebaseReference {
+  return { __type: "reference", collectionId, documentId }
+}
+
 export async function listFirebaseCollection<T = Record<string, unknown>>(
   collectionId: string,
   options: { pageSize?: number; maxDocs?: number } = {}
@@ -180,7 +286,7 @@ export async function listFirebaseCollection<T = Record<string, unknown>>(
   const pageSize = options.pageSize ?? 100
   const maxDocs = options.maxDocs ?? Number.POSITIVE_INFINITY
   const token = await getAccessToken(serviceAccount)
-  const root = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`
+  const root = firestoreRoot(projectId)
   const documents: FirebaseDocument<T>[] = []
   let pageToken = ""
 
@@ -231,7 +337,7 @@ export async function getFirebaseDocument<T = Record<string, unknown>>(
     process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ??
     serviceAccount.project_id
   const token = await getAccessToken(serviceAccount)
-  const root = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`
+  const root = firestoreRoot(projectId)
   const url = `${root}/${encodeURIComponent(collectionId)}/${encodeURIComponent(
     documentId
   )}`
@@ -246,6 +352,46 @@ export async function getFirebaseDocument<T = Record<string, unknown>>(
   if (!response.ok) {
     throw new Error(
       `Firestore ${collectionId}/${documentId} read failed with ${response.status}`
+    )
+  }
+
+  return decodeDocument(
+    (await response.json()) as FirestoreDocument
+  ) as FirebaseDocument<T> | null
+}
+
+export async function createFirebaseDocument<T = Record<string, unknown>>(
+  collectionId: string,
+  data: Record<string, FirestoreWriteValue | undefined>,
+  options: { documentId?: string } = {}
+): Promise<FirebaseDocument<T> | null> {
+  const serviceAccount = parseServiceAccount()
+  if (!serviceAccount) return null
+
+  const projectId =
+    process.env.PARAWA_FIREBASE_PROJECT_ID ??
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ??
+    serviceAccount.project_id
+  const token = await getAccessToken(serviceAccount)
+  const url = new URL(`${firestoreRoot(projectId)}/${collectionId}`)
+
+  if (options.documentId) {
+    url.searchParams.set("documentId", options.documentId)
+  }
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${token}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ fields: encodeFields(data, projectId) }),
+    cache: "no-store",
+  })
+
+  if (!response.ok) {
+    throw new Error(
+      `Firestore ${collectionId} write failed with ${response.status}`
     )
   }
 
