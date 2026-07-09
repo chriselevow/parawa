@@ -116,6 +116,9 @@
 - Completed the visible chat attachment affordance: the paperclip now opens a
   mobile-safe attachment picker and appends a local sent attachment message with
   Firebase Storage/message write-path copy.
+- Replaced the bare login demo notice with a Firebase Auth-shaped credential
+  form, role selector, staged submit confirmation, and retained demo identity
+  access for client/provider/admin review.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -229,6 +232,11 @@
   the attachment dialog opened with stable option cards, photo/document
   selections appended local sent messages, page/dialog overflow stayed at `0`,
   and browser error logs were empty.
+- Login/Auth checks passed on `/login?role=provider&next=%2Fprovider` at
+  `390x844` and `/login?role=admin&next=%2Fadmin` at `1280x900`: email/password
+  fields, role selector where relevant, staged Firebase Auth confirmation, and
+  demo access controls rendered with page overflow `0`; the old `Sin clave por
+ahora` copy was absent, and admin demo access reached `/admin`.
 
 ## Final Result
 

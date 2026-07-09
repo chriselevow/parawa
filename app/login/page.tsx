@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
 import { getSessionIdentityOptions } from "@/lib/parawa-data"
 import { normalizeRole, roleLabels, safeNextPath } from "@/lib/roles"
@@ -40,30 +39,19 @@ export default async function LoginPage({
 
   return (
     <PrototypeShell>
-      <Card className="mx-auto w-full max-w-md">
+      <Card className="mx-auto w-full max-w-xl">
         <CardHeader>
           <CardTitle>{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="rounded-xl border border-primary/15 bg-secondary/45 p-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline">Demo</Badge>
-              <p className="text-sm font-semibold">Sin clave por ahora</p>
-            </div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Este prototipo usa accesos de rol con una identidad Firebase de
-              ejemplo. El login con correo y contraseña se conecta cuando
-              activemos Firebase Auth.
-            </p>
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-2">
+        <CardContent>
           <RoleLoginActions
             identities={identities}
             intent={intent}
             nextPath={nextPath}
           />
+        </CardContent>
+        <CardFooter className="flex flex-col gap-2">
           <p className="text-center text-xs text-muted-foreground">
             ¿Quieres reservar?{" "}
             <Link

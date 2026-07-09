@@ -2,9 +2,18 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { LogOutIcon } from "lucide-react"
+import {
+  CheckCircle2Icon,
+  KeyRoundIcon,
+  LogOutIcon,
+  MailIcon,
+  ShieldCheckIcon,
+} from "lucide-react"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   type AppRole,
   destinationForRole,
@@ -67,6 +76,10 @@ export function RoleLoginActions({
       : intent === "provider"
         ? ["provider", "client"]
         : ["client", "provider"]
+  const [selectedRole, setSelectedRole] = useState<AppRole>(roles[0])
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [authPrepared, setAuthPrepared] = useState(false)
 
   function signIn(role: AppRole) {
     setSessionCookies(role, identities?.[role]?.id)
@@ -74,31 +87,139 @@ export function RoleLoginActions({
   }
 
   return (
-    <div className="flex w-full flex-col gap-2">
-      {roles.map((role, index) => {
-        const identity = identities?.[role]
-
-        return (
-          <div key={role} className="grid gap-1.5">
-            <Button
-              type="button"
-              variant={index === 0 ? "default" : "outline"}
-              className="w-full"
-              onClick={() => signIn(role)}
-            >
-              {role === "admin"
-                ? "Entrar al admin interno"
-                : `Continuar como ${roleLabels[role].toLowerCase()}`}
-            </Button>
-            {identity ? (
-              <p className="break-anywhere px-1 text-center text-xs text-muted-foreground">
-                Sesión demo: {identity.label}
-                {identity.detail ? ` · ${identity.detail}` : ""}
-              </p>
-            ) : null}
+    <div className="flex w-full flex-col gap-4">
+      <form
+        className="grid gap-4 rounded-xl border border-primary/15 bg-background p-4 shadow-sm shadow-primary/5"
+        onSubmit={(event) => {
+          event.preventDefault()
+          setAuthPrepared(true)
+        }}
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="secondary">
+            <ShieldCheckIcon data-icon="inline-start" />
+            Firebase Auth
+          </Badge>
+          <span className="text-sm font-semibold">
+            Acceso con correo y contraseña
+          </span>
+        </div>
+        <div className="grid gap-3">
+          <div className="grid gap-1.5">
+            <Label htmlFor="login-email">Correo</Label>
+            <div className="relative">
+              <MailIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="login-email"
+                type="email"
+                value={email}
+                onChange={(event) => {
+                  setEmail(event.target.value)
+                  setAuthPrepared(false)
+                }}
+                placeholder="correo@parawa.app"
+                className="h-10 pl-8"
+                autoComplete="email"
+              />
+            </div>
           </div>
-        )
-      })}
+          <div className="grid gap-1.5">
+            <Label htmlFor="login-password">Contraseña</Label>
+            <div className="relative">
+              <KeyRoundIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="login-password"
+                type="password"
+                value={password}
+                onChange={(event) => {
+                  setPassword(event.target.value)
+                  setAuthPrepared(false)
+                }}
+                placeholder="••••••••"
+                className="h-10 pl-8"
+                autoComplete="current-password"
+              />
+            </div>
+          </div>
+        </div>
+        {roles.length > 1 ? (
+          <div className="grid gap-2">
+            <p className="text-xs font-semibold text-muted-foreground">Rol</p>
+            <div className="grid grid-cols-2 gap-2">
+              {roles.map((role) => (
+                <Button
+                  key={role}
+                  type="button"
+                  variant={selectedRole === role ? "default" : "outline"}
+                  className="h-9"
+                  onClick={() => {
+                    setSelectedRole(role)
+                    setAuthPrepared(false)
+                  }}
+                >
+                  {roleLabels[role]}
+                </Button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        {authPrepared ? (
+          <div className="rounded-xl border border-primary/15 bg-primary/5 p-3 text-sm">
+            <div className="flex items-start gap-2">
+              <CheckCircle2Icon className="mt-0.5 size-4 text-primary" />
+              <div className="min-w-0">
+                <p className="font-semibold text-primary">
+                  Formulario listo para Firebase
+                </p>
+                <p className="break-anywhere mt-1 text-muted-foreground">
+                  En producción validará el token de {roleLabels[selectedRole]}{" "}
+                  y cargará el perfil asociado antes de entrar.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : null}
+        <Button type="submit" disabled={!email.trim() || !password.trim()}>
+          Preparar acceso Firebase
+        </Button>
+      </form>
+
+      <div className="grid gap-3 rounded-xl border border-dashed bg-muted/30 p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="outline">Demo</Badge>
+          <p className="text-sm font-semibold">Entrar sin clave</p>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Usa una identidad Firebase de ejemplo para revisar rutas y datos
+          mientras conectamos Auth real.
+        </p>
+        <div className="flex w-full flex-col gap-2">
+          {roles.map((role, index) => {
+            const identity = identities?.[role]
+
+            return (
+              <div key={role} className="grid gap-1.5">
+                <Button
+                  type="button"
+                  variant={index === 0 ? "default" : "outline"}
+                  className="w-full"
+                  onClick={() => signIn(role)}
+                >
+                  {role === "admin"
+                    ? "Entrar al admin interno"
+                    : `Continuar como ${roleLabels[role].toLowerCase()}`}
+                </Button>
+                {identity ? (
+                  <p className="break-anywhere px-1 text-center text-xs text-muted-foreground">
+                    Sesión demo: {identity.label}
+                    {identity.detail ? ` · ${identity.detail}` : ""}
+                  </p>
+                ) : null}
+              </div>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }

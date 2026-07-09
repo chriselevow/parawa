@@ -107,10 +107,13 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 32. Chat attachment control was visible but inert.
     - Fix: Added a mobile-safe attachment dialog in the chat thread with photo/document/comprobante choices, stable option cards, and a local sent attachment message that identifies the future Firebase Storage and message write path.
 
+33. Login still looked like a pure demo gate.
+    - Fix: Replaced the bare `Sin clave por ahora` notice with a Firebase Auth-shaped email/password form, role selector, staged token-validation confirmation, and retained demo identity access for route/data review until real Auth is connected.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
-   - Current behavior: role cookie demo with a Firebase-derived example identity cookie.
+   - Current behavior: login now has a Firebase Auth-shaped credential UI with staged submit feedback, but real sessions still use role cookies with Firebase-derived example identity cookies.
    - Needed: Firebase Auth sign-in, role claims/profile lookup, protected routes based on real user identity.
 
 2. Writes are not persisted.
@@ -296,6 +299,13 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
   and document attachment choices rendered, selection state worked, local
   attachment messages appeared, page/dialog overflow stayed at `0`, and console
   error logs were empty.
+- Login/Auth UI now includes a Firebase Auth-shaped credential form, role
+  selector where applicable, staged token-validation confirmation, and retained
+  demo identity controls. Browser checks passed on
+  `/login?role=provider&next=%2Fprovider` at `390x844` and
+  `/login?role=admin&next=%2Fadmin` at `1280x900`: old `Sin clave por ahora`
+  copy was absent, form submit feedback rendered, demo admin access reached
+  `/admin`, page overflow stayed at `0`, and console error logs were empty.
 
 ## Recommended Next Step
 
