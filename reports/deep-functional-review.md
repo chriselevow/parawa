@@ -113,11 +113,14 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 34. Login credential form still did not authenticate.
     - Fix: Added `/api/auth/firebase-login`, a server-side Firebase Identity Toolkit sign-in bridge, single-user Firestore lookup for `users/{uid}`, admin email allowlist support, role mismatch protection, and cookie setup for the resolved Firebase UID/role.
 
+35. Firebase login cookies were still shaped like demo cookies.
+    - Fix: Firebase Auth login now writes HttpOnly role/user/source cookies, demo login marks `parawa_session_source=demo`, and `/api/auth/sign-out` clears server cookies while the shared sign-out button also clears local browser state.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is connected as a first bridge, but not yet production-grade.
-   - Current behavior: login posts email/password to Firebase Identity Toolkit, resolves the returned UID against Firestore `users/{uid}` or `PARAWA_ADMIN_EMAILS`, then sets the active Parawa role/user cookies. Demo buttons still set example identity cookies for QA.
-   - Needed: hardened HttpOnly session cookies or Firebase Admin session verification, token refresh/revocation handling, role claims/rules alignment, and production sign-out/session expiry behavior.
+   - Current behavior: login posts email/password to Firebase Identity Toolkit, resolves the returned UID against Firestore `users/{uid}` or `PARAWA_ADMIN_EMAILS`, then sets HttpOnly Parawa role/user/source cookies. Demo buttons still set example identity cookies for QA and are labeled as demo sessions.
+   - Needed: Firebase Admin session-cookie verification or equivalent token verification on protected requests, token refresh/revocation handling, role claims/rules alignment, and production session expiry behavior.
 
 2. Writes are not persisted.
    - Current behavior: booking, review, provider request, availability, services, portfolio, admin verification/provider/user management, chat text, and chat attachment states are local demo flows with confirmation UI.

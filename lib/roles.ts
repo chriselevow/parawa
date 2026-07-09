@@ -1,7 +1,9 @@
 export const ROLE_COOKIE = "parawa_role"
 export const USER_COOKIE = "parawa_user_id"
+export const SESSION_SOURCE_COOKIE = "parawa_session_source"
 
 export type AppRole = "client" | "provider" | "admin"
+export type SessionSource = "demo" | "firebase"
 
 export const roleLabels: Record<AppRole, string> = {
   client: "Cliente",
@@ -19,6 +21,12 @@ export function normalizeRole(value: unknown): AppRole | null {
   if (value === "client" || value === "provider" || value === "admin") {
     return value
   }
+
+  return null
+}
+
+export function normalizeSessionSource(value: unknown): SessionSource | null {
+  if (value === "demo" || value === "firebase") return value
 
   return null
 }

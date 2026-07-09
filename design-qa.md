@@ -123,6 +123,10 @@
   now validates email/password with Identity Toolkit, resolves the Firebase UID
   against the `users` document or admin-email allowlist, sets the active
   role/user cookies, and keeps demo access as a separate QA fallback.
+- Hardened session handling after the Firebase bridge: real Firebase login now
+  writes HttpOnly role/user/source cookies, demo login carries an explicit demo
+  source, and the shared sign-out control clears both server and browser
+  session state.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -244,6 +248,10 @@
   the expected missing-env Firebase error inside the form with page overflow
   `0`; `/api/auth/firebase-login` returned `400` for missing fields and `401`
   for missing Firebase web API key.
+- Session-hardening checks covered the new `/api/auth/sign-out` endpoint,
+  demo-provider sign-in/sign-out, and Firebase-login error handling: sign-out
+  cleared role/user/source cookies, returned the user to `/`, and mobile login
+  stayed at page overflow `0`.
 
 ## Final Result
 

@@ -21,6 +21,8 @@ import {
   normalizeRole,
   ROLE_COOKIE,
   roleLabels,
+  SESSION_SOURCE_COOKIE,
+  type SessionSource,
   USER_COOKIE,
 } from "@/lib/roles"
 import { cn } from "@/lib/utils"
@@ -39,12 +41,19 @@ type FirebaseLoginResponse = {
   error?: string
   role?: AppRole
   roleSource?: "admin-email" | "requested-role" | "users"
+  sessionSource?: SessionSource
   userId?: string
 }
 
-function setSessionCookies(role: AppRole, userId?: string) {
+function setSessionCookies(
+  role: AppRole,
+  userId?: string,
+  source: SessionSource = "demo"
+) {
   document.cookie = `${ROLE_COOKIE}=${role}; path=/; max-age=${COOKIE_MAX_AGE_SECONDS}; samesite=lax`
+  document.cookie = `${SESSION_SOURCE_COOKIE}=${source}; path=/; max-age=${COOKIE_MAX_AGE_SECONDS}; samesite=lax`
   window.localStorage.setItem(ROLE_COOKIE, role)
+  window.localStorage.setItem(SESSION_SOURCE_COOKIE, source)
 
   if (userId) {
     document.cookie = `${USER_COOKIE}=${encodeURIComponent(userId)}; path=/; max-age=${COOKIE_MAX_AGE_SECONDS}; samesite=lax`
@@ -55,8 +64,13 @@ function setSessionCookies(role: AppRole, userId?: string) {
   }
 }
 
-function setLocalSession(role: AppRole, userId?: string) {
+function setLocalSession(
+  role: AppRole,
+  userId?: string,
+  source: SessionSource = "firebase"
+) {
   window.localStorage.setItem(ROLE_COOKIE, role)
+  window.localStorage.setItem(SESSION_SOURCE_COOKIE, source)
 
   if (userId) {
     window.localStorage.setItem(USER_COOKIE, userId)
@@ -67,8 +81,10 @@ function setLocalSession(role: AppRole, userId?: string) {
 
 function clearSessionCookies() {
   document.cookie = `${ROLE_COOKIE}=; path=/; max-age=0; samesite=lax`
+  document.cookie = `${SESSION_SOURCE_COOKIE}=; path=/; max-age=0; samesite=lax`
   document.cookie = `${USER_COOKIE}=; path=/; max-age=0; samesite=lax`
   window.localStorage.removeItem(ROLE_COOKIE)
+  window.localStorage.removeItem(SESSION_SOURCE_COOKIE)
   window.localStorage.removeItem(USER_COOKIE)
 }
 
@@ -78,7 +94,7 @@ function getCurrentRole() {
     .find((row) => row.startsWith(`${ROLE_COOKIE}=`))
     ?.split("=")[1]
 
-  return normalizeRole(cookieRole)
+  return normalizeRole(cookieRole ?? window.localStorage.getItem(ROLE_COOKIE))
 }
 
 export function RoleLoginActions({
@@ -138,7 +154,7 @@ export function RoleLoginActions({
         throw new Error(json.error ?? "No pudimos iniciar sesión con Firebase.")
       }
 
-      setLocalSession(json.role, json.userId)
+      setLocalSession(json.role, json.userId, json.sessionSource ?? "firebase")
       setAuthFeedback({
         detail: `Perfil ${roleLabels[json.role]} validado${
           json.roleSource === "users" ? " desde Firestore" : ""
@@ -328,6 +344,7 @@ export function SignOutButton({
 }) {
   const router = useRouter()
   const [isVisible, setIsVisible] = useState(false)
+  const [isSigningOut, setIsSigningOut] = useState(false)
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -345,13 +362,19 @@ export function SignOutButton({
       variant="outline"
       size="sm"
       className="h-8 rounded-lg px-2.5 text-xs sm:px-3 sm:text-[0.8rem]"
-      onClick={() => {
+      disabled={isSigningOut}
+      onClick={async () => {
+        setIsSigningOut(true)
+        await fetch("/api/auth/sign-out", {
+          method: "POST",
+          credentials: "same-origin",
+        }).catch(() => null)
         clearSessionCookies()
         router.push(redirectTo)
       }}
     >
       <LogOutIcon data-icon="inline-start" />
-      Salir
+      {isSigningOut ? "Saliendo..." : "Salir"}
     </Button>
   )
 }

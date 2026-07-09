@@ -2,7 +2,13 @@ import "server-only"
 
 import { cookies } from "next/headers"
 
-import { normalizeRole, ROLE_COOKIE, USER_COOKIE } from "@/lib/roles"
+import {
+  normalizeRole,
+  normalizeSessionSource,
+  ROLE_COOKIE,
+  SESSION_SOURCE_COOKIE,
+  USER_COOKIE,
+} from "@/lib/roles"
 
 function decodeCookieValue(value: string | undefined) {
   if (!value) return undefined
@@ -19,6 +25,9 @@ export async function getActiveSession() {
 
   return {
     role: normalizeRole(cookieStore.get(ROLE_COOKIE)?.value),
+    source: normalizeSessionSource(
+      cookieStore.get(SESSION_SOURCE_COOKIE)?.value
+    ),
     userId: decodeCookieValue(cookieStore.get(USER_COOKIE)?.value),
   }
 }

@@ -12,6 +12,7 @@ import {
   normalizeRole,
   ROLE_COOKIE,
   safeNextPath,
+  SESSION_SOURCE_COOKIE,
   USER_COOKIE,
 } from "@/lib/roles"
 
@@ -37,6 +38,7 @@ export type FirebaseLoginSession = {
   email: string
   role: AppRole
   roleSource: "admin-email" | "requested-role" | "users"
+  sessionSource: "firebase"
   userId: string
 }
 
@@ -180,6 +182,7 @@ export async function createFirebaseLoginSession({
 
   const cookieStore = await cookies()
   const cookieOptions = {
+    httpOnly: true,
     maxAge: COOKIE_MAX_AGE_SECONDS,
     path: "/",
     sameSite: "lax" as const,
@@ -188,12 +191,14 @@ export async function createFirebaseLoginSession({
 
   cookieStore.set(ROLE_COOKIE, role.role, cookieOptions)
   cookieStore.set(USER_COOKIE, firebaseUser.localId, cookieOptions)
+  cookieStore.set(SESSION_SOURCE_COOKIE, "firebase", cookieOptions)
 
   return {
     destination: destinationForRole(role.role, safeNextPath(nextPath)),
     email: firebaseUser.email ?? email,
     role: role.role,
     roleSource: role.source,
+    sessionSource: "firebase",
     userId: firebaseUser.localId,
   }
 }
