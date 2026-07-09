@@ -104,6 +104,9 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
 31. Admin management actions looked operational but were inert.
     - Fix: Added reusable admin action dialogs for verification approval/rejection/document review, provider approval/suspension, and user detail/suspension/reactivation. Dialogs carry Firebase-derived identifiers and metadata, wrap long values safely, and end in staged confirmations for the eventual write path.
 
+32. Chat attachment control was visible but inert.
+    - Fix: Added a mobile-safe attachment dialog in the chat thread with photo/document/comprobante choices, stable option cards, and a local sent attachment message that identifies the future Firebase Storage and message write path.
+
 ## Remaining Functional Gaps
 
 1. Firebase Auth is not connected to real sessions.
@@ -111,7 +114,7 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
    - Needed: Firebase Auth sign-in, role claims/profile lookup, protected routes based on real user identity.
 
 2. Writes are not persisted.
-   - Current behavior: booking, review, provider request, availability, services, portfolio, admin verification/provider/user management, and message states are local demo flows with confirmation UI.
+   - Current behavior: booking, review, provider request, availability, services, portfolio, admin verification/provider/user management, chat text, and chat attachment states are local demo flows with confirmation UI.
    - Needed: create booking, update booking status, create review, and create chat/message records.
 
 3. Client booking ownership is not filtered by authenticated identity.
@@ -149,8 +152,8 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
     - Needed: authenticated Firestore queries over real thread/message records once the messaging schema exists.
 
 11. Chat thread messages are still local demo messages.
-    - Current behavior: `/messages/[id]` can now fit longer message histories with a bounded latest-message window and load-earlier control, but it does not read or write a Firebase messages collection.
-    - Needed: real message collection reads, send-message writes, ordering, unread updates, and authenticated participant checks once the messaging schema exists.
+    - Current behavior: `/messages/[id]` can now fit longer message histories with a bounded latest-message window, load-earlier control, quick replies, local send, and local attachment messages, but it does not read or write a Firebase messages collection.
+    - Needed: real message collection reads, send-message writes, attachment Storage uploads, ordering, unread updates, and authenticated participant checks once the messaging schema exists.
 
 12. Provider request controls are still client-side over normalized reads.
     - Current behavior: `/provider` filters and paginates after the read-only adapter normalizes the selected demo provider's active reservations.
@@ -286,6 +289,13 @@ Scope: Parawa clickable prototype at `http://localhost:3300`
   `390x844`, plus `/admin/providers?q=Diego` at `1280x900`: long Firebase
   phone/id values wrapped, dialogs opened/submitted/closed, page and dialog
   overflow stayed at `0`, and console error logs were empty.
+- Chat attachment workflow now opens a bounded picker from the composer and
+  appends a local sent attachment message for the future Firebase Storage path.
+  Browser checks passed on live client thread
+  `/messages/BBiONCOTKFQUieIAMAk7Nk5nfq33` at `390x844` and `1280x900`: photo
+  and document attachment choices rendered, selection state worked, local
+  attachment messages appeared, page/dialog overflow stayed at `0`, and console
+  error logs were empty.
 
 ## Recommended Next Step
 

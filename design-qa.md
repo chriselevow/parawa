@@ -113,6 +113,9 @@
   verifications, provider management, and user management now support
   review/approve/reject/suspend/reactivate/detail states with Firebase-aware
   confirmation copy.
+- Completed the visible chat attachment affordance: the paperclip now opens a
+  mobile-safe attachment picker and appends a local sent attachment message with
+  Firebase Storage/message write-path copy.
 
 ## Latest Responsive/Data-Fit Evidence
 
@@ -221,6 +224,11 @@
   review and approval dialogs; `/admin/providers?q=Diego` at `1280x900` opened
   provider suspension. All checked dialogs and pages reported overflow `0`, and
   browser error logs were empty.
+- Chat attachment checks passed on live client thread
+  `/messages/BBiONCOTKFQUieIAMAk7Nk5nfq33` at `390x844` and `1280x900`:
+  the attachment dialog opened with stable option cards, photo/document
+  selections appended local sent messages, page/dialog overflow stayed at `0`,
+  and browser error logs were empty.
 
 ## Final Result
 

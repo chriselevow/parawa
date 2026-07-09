@@ -4,8 +4,11 @@ import { FormEvent, useRef, useState } from "react"
 import Link from "next/link"
 import {
   CalendarDaysIcon,
+  CheckCircle2Icon,
   ChevronUpIcon,
   CreditCardIcon,
+  FileTextIcon,
+  ImageIcon,
   MapPinIcon,
   PaperclipIcon,
   SendIcon,
@@ -15,6 +18,16 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { buttonVariants } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { type Booking, statusLabel } from "@/lib/mock-data"
@@ -28,6 +41,26 @@ export type DemoMessage = {
 }
 
 const MESSAGE_THREAD_PAGE_SIZE = 8
+const attachmentOptions = [
+  {
+    id: "photo",
+    label: "Foto",
+    detail: "Antes/después, referencia visual o comprobante.",
+    icon: ImageIcon,
+  },
+  {
+    id: "document",
+    label: "Documento",
+    detail: "PDF, permiso, instrucciones o factura.",
+    icon: FileTextIcon,
+  },
+  {
+    id: "receipt",
+    label: "Comprobante",
+    detail: "Pago, depósito o confirmación externa.",
+    icon: PaperclipIcon,
+  },
+]
 
 export function MessageThreadDemo({
   name,
@@ -45,6 +78,10 @@ export function MessageThreadDemo({
     Math.min(MESSAGE_THREAD_PAGE_SIZE, initialMessages.length)
   )
   const [draft, setDraft] = useState("")
+  const [attachmentOpen, setAttachmentOpen] = useState(false)
+  const [selectedAttachment, setSelectedAttachment] = useState(
+    attachmentOptions[0].id
+  )
   const inputRef = useRef<HTMLInputElement>(null)
   const initials = name
     .split(" ")
@@ -72,6 +109,24 @@ export function MessageThreadDemo({
     setMessages((current) => [...current, ...nextMessages])
     setVisibleMessageCount((count) => count + nextMessages.length)
     setDraft("")
+    requestAnimationFrame(() => inputRef.current?.focus())
+  }
+
+  function addAttachmentMessage() {
+    const option =
+      attachmentOptions.find(
+        (attachment) => attachment.id === selectedAttachment
+      ) ?? attachmentOptions[0]
+    const nextMessage: DemoMessage = {
+      from: "me",
+      text: `Adjunto preparado: ${option.label}. En Firebase se subirá a Storage y se guardará en el hilo real.`,
+      time: "Ahora",
+      status: "sent",
+    }
+
+    setMessages((current) => [...current, nextMessage])
+    setVisibleMessageCount((count) => count + 1)
+    setAttachmentOpen(false)
     requestAnimationFrame(() => inputRef.current?.focus())
   }
 
@@ -245,10 +300,79 @@ export function MessageThreadDemo({
           className="flex flex-col gap-2 sm:flex-row"
           onSubmit={sendMessage}
         >
-          <Button type="button" variant="outline" size="icon">
-            <PaperclipIcon />
-            <span className="sr-only">Adjuntar archivo</span>
-          </Button>
+          <Dialog open={attachmentOpen} onOpenChange={setAttachmentOpen}>
+            <DialogTrigger
+              render={<Button type="button" variant="outline" size="icon" />}
+            >
+              <PaperclipIcon />
+              <span className="sr-only">Adjuntar archivo</span>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Adjuntar archivo</DialogTitle>
+                <DialogDescription>
+                  Prepara un adjunto para este hilo. El flujo final conectará
+                  Firebase Storage con el documento del mensaje.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-3">
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {attachmentOptions.map((option) => {
+                    const Icon = option.icon
+                    const isSelected = selectedAttachment === option.id
+
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        aria-pressed={isSelected}
+                        className={cn(
+                          "grid min-w-0 gap-2 rounded-xl border bg-background p-3 text-left text-sm transition-colors hover:border-primary/35 hover:bg-primary/5",
+                          isSelected && "border-primary/50 bg-primary/10"
+                        )}
+                        onClick={() => setSelectedAttachment(option.id)}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <Icon className="size-4 text-primary" />
+                          {isSelected ? (
+                            <CheckCircle2Icon className="size-4 text-primary" />
+                          ) : null}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="break-anywhere font-medium">
+                            {option.label}
+                          </p>
+                          <p className="break-anywhere mt-1 text-xs text-muted-foreground">
+                            {option.detail}
+                          </p>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+                <div className="rounded-xl border border-primary/15 bg-primary/5 p-3 text-sm text-muted-foreground">
+                  La vista mantiene dimensiones estables para archivos largos,
+                  nombres extensos y previsualizaciones futuras sin romper
+                  móvil.
+                </div>
+              </div>
+              <DialogFooter className="flex-col gap-2 sm:flex-row">
+                <DialogClose
+                  render={
+                    <Button variant="outline" className="w-full sm:flex-1" />
+                  }
+                >
+                  Cancelar
+                </DialogClose>
+                <Button
+                  className="w-full sm:flex-1"
+                  onClick={addAttachmentMessage}
+                >
+                  Adjuntar a conversación
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           <Input
             ref={inputRef}
             value={draft}
